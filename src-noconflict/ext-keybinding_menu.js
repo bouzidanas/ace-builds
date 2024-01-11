@@ -62,7 +62,7 @@ module.exports.overlayPage = function overlayPage(editor, contentElement, callba
 ace.define("ace/ext/menu_tools/get_editor_keyboard_shortcuts",["require","exports","module","ace/lib/keys"], function(require, exports, module){/*jslint indent: 4, maxerr: 50, white: true, browser: true, vars: true*/
 "use strict";
 var keys = require("../../lib/keys");
-module.exports.getEditorKeybordShortcuts = function (editor) {
+module.exports.getEditorKeyboardShortcuts = function (editor) {
     var KEY_MODS = keys.KEY_MODS;
     var keybindings = [];
     var commandMap = {};
@@ -97,8 +97,8 @@ var Editor = require("../editor").Editor;
 function showKeyboardShortcuts(editor) {
     if (!document.getElementById('kbshortcutmenu')) {
         var overlayPage = require('./menu_tools/overlay_page').overlayPage;
-        var getEditorKeybordShortcuts = require('./menu_tools/get_editor_keyboard_shortcuts').getEditorKeybordShortcuts;
-        var kb = getEditorKeybordShortcuts(editor);
+        var getEditorKeyboardShortcuts = require('./menu_tools/get_editor_keyboard_shortcuts').getEditorKeyboardShortcuts;
+        var kb = getEditorKeyboardShortcuts(editor);
         var el = document.createElement('div');
         var commands = kb.reduce(function (previous, current) {
             return previous + '<div class="ace_optionsMenuEntry"><span class="ace_optionsMenuCommand">'

@@ -1,7 +1,7 @@
 ace.define("ace/ext/menu_tools/get_editor_keyboard_shortcuts",["require","exports","module","ace/lib/keys"], function(require, exports, module){/*jslint indent: 4, maxerr: 50, white: true, browser: true, vars: true*/
 "use strict";
 var keys = require("../../lib/keys");
-module.exports.getEditorKeybordShortcuts = function (editor) {
+module.exports.getEditorKeyboardShortcuts = function (editor) {
     var KEY_MODS = keys.KEY_MODS;
     var keybindings = [];
     var commandMap = {};
@@ -2225,9 +2225,9 @@ function prompt(editor, message, options, callback) {
             "Down": function (editor) { popup.goTo("down"); valueFromRecentList(); },
             "Ctrl-Up|Ctrl-Home": function (editor) { popup.goTo("start"); valueFromRecentList(); },
             "Ctrl-Down|Ctrl-End": function (editor) { popup.goTo("end"); valueFromRecentList(); },
-            "Tab": function (editor) {
-                popup.goTo("down");
-                valueFromRecentList();
+            "Tab": function (editor) { 
+                popup.goTo("down"); 
+                valueFromRecentList(); 
             },
             "PageUp": function (editor) { popup.gotoPageUp(); valueFromRecentList(); },
             "PageDown": function (editor) { popup.gotoPageDown(); valueFromRecentList(); }
