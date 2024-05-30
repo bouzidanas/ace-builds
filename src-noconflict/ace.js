@@ -7717,7 +7717,7 @@ var BackgroundTokenizer = /** @class */ (function () {
         };
         this._signal("update", { data: data });
     };
-    this.start = function (startRow) {
+    BackgroundTokenizer.prototype.start = function (startRow) {
         this.currentLine = Math.min(startRow || 0, this.currentLine, this.doc?isNaN(this.doc.getLength())? Infinity : this.doc.getLength(): Infinity);
         this.lines.splice(this.currentLine, this.lines.length);
         this.states.splice(this.currentLine, this.states.length);
