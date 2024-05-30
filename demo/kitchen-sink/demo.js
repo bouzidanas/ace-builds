@@ -1555,25 +1555,28 @@ function getModeForPath(path) {
     }
     return mode;
 }
-var Mode = function (name, caption, extensions) {
-    this.name = name;
-    this.caption = caption;
-    this.mode = "ace/mode/" + name;
-    this.extensions = extensions;
-    var re;
-    if (/\^/.test(extensions)) {
-        re = extensions.replace(/\|(\^)?/g, function (a, b) {
-            return "$|" + (b ? "^" : "^.*\\.");
-        }) + "$";
+var Mode = /** @class */ (function () {
+    function Mode(name, caption, extensions) {
+        this.name = name;
+        this.caption = caption;
+        this.mode = "ace/mode/" + name;
+        this.extensions = extensions;
+        var re;
+        if (/\^/.test(extensions)) {
+            re = extensions.replace(/\|(\^)?/g, function (a, b) {
+                return "$|" + (b ? "^" : "^.*\\.");
+            }) + "$";
+        }
+        else {
+            re = "^.*\\.(" + extensions + ")$";
+        }
+        this.extRe = new RegExp(re, "gi");
     }
-    else {
-        re = "^.*\\.(" + extensions + ")$";
-    }
-    this.extRe = new RegExp(re, "gi");
-};
-Mode.prototype.supportsFile = function (filename) {
-    return filename.match(this.extRe);
-};
+    Mode.prototype.supportsFile = function (filename) {
+        return filename.match(this.extRe);
+    };
+    return Mode;
+}());
 var supportedModes = {
     ABAP: ["abap"],
     ABC: ["abc"],
@@ -1585,7 +1588,9 @@ var supportedModes = {
     AQL: ["aql"],
     AsciiDoc: ["asciidoc|adoc"],
     ASL: ["dsl|asl|asl.json"],
+    Assembly_ARM32: ["s"],
     Assembly_x86: ["asm|a"],
+    Astro: ["astro"],
     AutoHotKey: ["ahk"],
     BatchFile: ["bat|cmd"],
     BibTeX: ["bib"],
@@ -1595,7 +1600,7 @@ var supportedModes = {
     Clojure: ["clj|cljs"],
     Cobol: ["CBL|COB"],
     coffee: ["coffee|cf|cson|^Cakefile"],
-    ColdFusion: ["cfm"],
+    ColdFusion: ["cfm|cfc"],
     Crystal: ["cr"],
     CSharp: ["cs"],
     Csound_Document: ["csd"],
@@ -1603,9 +1608,11 @@ var supportedModes = {
     Csound_Score: ["sco"],
     CSS: ["css"],
     Curly: ["curly"],
+    Cuttlefish: ["conf"],
     D: ["d|di"],
     Dart: ["dart"],
     Diff: ["diff|patch"],
+    Django: ["djt|html.djt|dj.html|djhtml"],
     Dockerfile: ["^Dockerfile"],
     Dot: ["dot"],
     Drools: ["drl"],
@@ -1615,6 +1622,7 @@ var supportedModes = {
     Elixir: ["ex|exs"],
     Elm: ["elm"],
     Erlang: ["erl|hrl"],
+    Flix: ["flix"],
     Forth: ["frt|fs|ldr|fth|4th"],
     Fortran: ["f|f90"],
     FSharp: ["fsi|fs|ml|mli|fsx|fsscript"],
@@ -1634,7 +1642,7 @@ var supportedModes = {
     Haskell_Cabal: ["cabal"],
     haXe: ["hx"],
     Hjson: ["hjson"],
-    HTML: ["html|htm|xhtml|vue|we|wpy"],
+    HTML: ["html|htm|xhtml|we|wpy"],
     HTML_Elixir: ["eex|html.eex"],
     HTML_Ruby: ["erb|rhtml|html.erb"],
     INI: ["ini|conf|cfg|prefs"],
@@ -1643,7 +1651,7 @@ var supportedModes = {
     Jack: ["jack"],
     Jade: ["jade|pug"],
     Java: ["java"],
-    JavaScript: ["js|jsm|jsx|cjs|mjs"],
+    JavaScript: ["js|jsm|cjs|mjs"],
     JEXL: ["jexl"],
     JSON: ["json"],
     JSON5: ["json5"],
@@ -1677,6 +1685,7 @@ var supportedModes = {
     MIXAL: ["mixal"],
     MUSHCode: ["mc|mush"],
     MySQL: ["mysql"],
+    Nasal: ["nas"],
     Nginx: ["nginx|conf"],
     Nim: ["nim"],
     Nix: ["nix"],
@@ -1684,19 +1693,22 @@ var supportedModes = {
     Nunjucks: ["nunjucks|nunjs|nj|njk"],
     ObjectiveC: ["m|mm"],
     OCaml: ["ml|mli"],
+    Odin: ["odin"],
     PartiQL: ["partiql|pql"],
     Pascal: ["pas|p"],
     Perl: ["pl|pm"],
     pgSQL: ["pgsql"],
-    PHP_Laravel_blade: ["blade.php"],
     PHP: ["php|inc|phtml|shtml|php3|php4|php5|phps|phpt|aw|ctp|module"],
+    PHP_Laravel_blade: ["blade.php"],
     Pig: ["pig"],
+    PLSQL: ["plsql"],
     Powershell: ["ps1"],
     Praat: ["praat|praatscript|psc|proc"],
     Prisma: ["prisma"],
     Prolog: ["plg|prolog"],
     Properties: ["properties"],
     Protobuf: ["proto"],
+    PRQL: ["prql"],
     Puppet: ["epp|pp"],
     Python: ["py"],
     QML: ["qml"],
@@ -1740,19 +1752,20 @@ var supportedModes = {
     TSX: ["tsx"],
     Turtle: ["ttl"],
     Twig: ["twig|swig"],
-    Typescript: ["ts|typescript|str"],
+    Typescript: ["ts|mts|cts|typescript|str"],
     Vala: ["vala"],
     VBScript: ["vbs|vb"],
     Velocity: ["vm"],
     Verilog: ["v|vh|sv|svh"],
     VHDL: ["vhd|vhdl"],
     Visualforce: ["vfp|component|page"],
+    Vue: ["vue"],
     Wollok: ["wlk|wpgm|wtest"],
     XML: ["xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl|xaml"],
     XQuery: ["xq"],
     YAML: ["yaml|yml"],
     Zeek: ["zeek|bro"],
-    Django: ["html"]
+    Zig: ["zig"]
 };
 var nameOverrides = {
     ObjectiveC: "Objective-C",
@@ -2094,8 +2107,8 @@ modelist.modes.forEach(function(m) {
 
 
 
-if (window.require && window.require.s) try {
-    for (var path in window.require.s.contexts._.defined) {
+if (window.define && window.define.modules) try {
+    for (var path in window.define.modules) {
         if (path.indexOf("!") != -1)
             path = path.split("!").pop();
         else
@@ -2142,7 +2155,7 @@ function loadDoc(name, callback) {
     if (parts[0] == "docs")
         path = "demo/kitchen-sink/" + path;
     else if (parts[0] == "ace")
-        path = "lib/" + path;
+        path = "src/" + parts.slice(1).join("/");
 
     net.get(path, function(x) {
         initDoc(x, path, doc);
@@ -2163,7 +2176,7 @@ function saveDoc(name, callback) {
     if (parts[0] == "docs")
         path = "demo/kitchen-sink/" + path;
     else if (parts[0] == "ace")
-        path = "lib/" + path;
+        path = "src/" + parts.slice(1).join("/");
 
     upload(path, doc.session.getValue(), callback);
 }
@@ -2548,30 +2561,30 @@ function dropdown(values) {
 });
 
 define("ace/ext/elastic_tabstops_lite",["require","exports","module","ace/editor","ace/config"], function(require, exports, module){"use strict";
-var ElasticTabstopsLite = function (editor) {
-    this.$editor = editor;
-    var self = this;
-    var changedRows = [];
-    var recordChanges = false;
-    this.onAfterExec = function () {
-        recordChanges = false;
-        self.processRows(changedRows);
-        changedRows = [];
-    };
-    this.onExec = function () {
-        recordChanges = true;
-    };
-    this.onChange = function (delta) {
-        if (recordChanges) {
-            if (changedRows.indexOf(delta.start.row) == -1)
-                changedRows.push(delta.start.row);
-            if (delta.end.row != delta.start.row)
-                changedRows.push(delta.end.row);
-        }
-    };
-};
-(function () {
-    this.processRows = function (rows) {
+var ElasticTabstopsLite = /** @class */ (function () {
+    function ElasticTabstopsLite(editor) {
+        this.$editor = editor;
+        var self = this;
+        var changedRows = [];
+        var recordChanges = false;
+        this.onAfterExec = function () {
+            recordChanges = false;
+            self.processRows(changedRows);
+            changedRows = [];
+        };
+        this.onExec = function () {
+            recordChanges = true;
+        };
+        this.onChange = function (delta) {
+            if (recordChanges) {
+                if (changedRows.indexOf(delta.start.row) == -1)
+                    changedRows.push(delta.start.row);
+                if (delta.end.row != delta.start.row)
+                    changedRows.push(delta.end.row);
+            }
+        };
+    }
+    ElasticTabstopsLite.prototype.processRows = function (rows) {
         this.$inChange = true;
         var checkedRows = [];
         for (var r = 0, rowCount = rows.length; r < rowCount; r++) {
@@ -2590,7 +2603,7 @@ var ElasticTabstopsLite = function (editor) {
         }
         this.$inChange = false;
     };
-    this.$findCellWidthsForBlock = function (row) {
+    ElasticTabstopsLite.prototype.$findCellWidthsForBlock = function (row) {
         var cellWidths = [], widths;
         var rowIter = row;
         while (rowIter >= 0) {
@@ -2612,7 +2625,7 @@ var ElasticTabstopsLite = function (editor) {
         }
         return { cellWidths: cellWidths, firstRow: firstRow };
     };
-    this.$cellWidthsForRow = function (row) {
+    ElasticTabstopsLite.prototype.$cellWidthsForRow = function (row) {
         var selectionColumns = this.$selectionColumnsForRow(row);
         var tabs = [-1].concat(this.$tabsForRow(row));
         var widths = tabs.map(function (el) { return 0; }).slice(1);
@@ -2626,7 +2639,7 @@ var ElasticTabstopsLite = function (editor) {
         }
         return widths;
     };
-    this.$selectionColumnsForRow = function (row) {
+    ElasticTabstopsLite.prototype.$selectionColumnsForRow = function (row) {
         var selections = [], cursor = this.$editor.getCursorPosition();
         if (this.$editor.session.getSelection().isEmpty()) {
             if (row == cursor.row)
@@ -2634,7 +2647,7 @@ var ElasticTabstopsLite = function (editor) {
         }
         return selections;
     };
-    this.$setBlockCellWidthsToMax = function (cellWidths) {
+    ElasticTabstopsLite.prototype.$setBlockCellWidthsToMax = function (cellWidths) {
         var startingNewBlock = true, blockStartRow, blockEndRow, maxWidth;
         var columnInfo = this.$izip_longest(cellWidths);
         for (var c = 0, l = columnInfo.length; c < l; c++) {
@@ -2663,7 +2676,7 @@ var ElasticTabstopsLite = function (editor) {
         }
         return cellWidths;
     };
-    this.$rightmostSelectionInCell = function (selectionColumns, cellRightEdge) {
+    ElasticTabstopsLite.prototype.$rightmostSelectionInCell = function (selectionColumns, cellRightEdge) {
         var rightmost = 0;
         if (selectionColumns.length) {
             var lengths = [];
@@ -2677,14 +2690,14 @@ var ElasticTabstopsLite = function (editor) {
         }
         return rightmost;
     };
-    this.$tabsForRow = function (row) {
+    ElasticTabstopsLite.prototype.$tabsForRow = function (row) {
         var rowTabs = [], line = this.$editor.session.getLine(row), re = /\t/g, match;
         while ((match = re.exec(line)) != null) {
             rowTabs.push(match.index);
         }
         return rowTabs;
     };
-    this.$adjustRow = function (row, widths) {
+    ElasticTabstopsLite.prototype.$adjustRow = function (row, widths) {
         var rowTabs = this.$tabsForRow(row);
         if (rowTabs.length == 0)
             return;
@@ -2711,7 +2724,7 @@ var ElasticTabstopsLite = function (editor) {
             }
         }
     };
-    this.$izip_longest = function (iterables) {
+    ElasticTabstopsLite.prototype.$izip_longest = function (iterables) {
         if (!iterables[0])
             return [];
         var longest = iterables[0].length;
@@ -2734,7 +2747,7 @@ var ElasticTabstopsLite = function (editor) {
         }
         return expandedSet;
     };
-    this.$izip = function (widths, tabs) {
+    ElasticTabstopsLite.prototype.$izip = function (widths, tabs) {
         var size = widths.length >= tabs.length ? tabs.length : widths.length;
         var expandedSet = [];
         for (var i = 0; i < size; i++) {
@@ -2743,7 +2756,8 @@ var ElasticTabstopsLite = function (editor) {
         }
         return expandedSet;
     };
-}).call(ElasticTabstopsLite.prototype);
+    return ElasticTabstopsLite;
+}());
 exports.ElasticTabstopsLite = ElasticTabstopsLite;
 var Editor = require("../editor").Editor;
 require("../config").defineOptions(Editor.prototype, "editor", {
@@ -2767,16 +2781,32 @@ require("../config").defineOptions(Editor.prototype, "editor", {
 
 });
 
-define("ace/occur",["require","exports","module","ace/lib/oop","ace/range","ace/search","ace/edit_session","ace/search_highlight","ace/lib/dom"], function(require, exports, module){"use strict";
+define("ace/occur",["require","exports","module","ace/lib/oop","ace/search","ace/edit_session","ace/search_highlight","ace/lib/dom"], function(require, exports, module){"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var oop = require("./lib/oop");
-var Range = require("./range").Range;
 var Search = require("./search").Search;
 var EditSession = require("./edit_session").EditSession;
 var SearchHighlight = require("./search_highlight").SearchHighlight;
-function Occur() { }
-oop.inherits(Occur, Search);
-(function () {
-    this.enter = function (editor, options) {
+var Occur = /** @class */ (function (_super) {
+    __extends(Occur, _super);
+    function Occur() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    Occur.prototype.enter = function (editor, options) {
         if (!options.needle)
             return false;
         var pos = editor.getCursorPosition();
@@ -2785,7 +2815,7 @@ oop.inherits(Occur, Search);
         editor.moveCursorToPosition(translatedPos);
         return true;
     };
-    this.exit = function (editor, options) {
+    Occur.prototype.exit = function (editor, options) {
         var pos = options.translatePosition && editor.getCursorPosition();
         var translatedPos = pos && this.occurToOriginalPosition(editor.session, pos);
         this.displayOriginalContent(editor);
@@ -2793,12 +2823,12 @@ oop.inherits(Occur, Search);
             editor.moveCursorToPosition(translatedPos);
         return true;
     };
-    this.highlight = function (sess, regexp) {
+    Occur.prototype.highlight = function (sess, regexp) {
         var hl = sess.$occurHighlight = sess.$occurHighlight || sess.addDynamicMarker(new SearchHighlight(null, "ace_occur-highlight", "text"));
         hl.setRegexp(regexp);
         sess._emit("changeBackMarker"); // force highlight layer redraw
     };
-    this.displayOccurContent = function (editor, options) {
+    Occur.prototype.displayOccurContent = function (editor, options) {
         this.$originalSession = editor.session;
         var found = this.matchingLines(editor.session, options);
         var lines = found.map(function (foundLine) { return foundLine.content; });
@@ -2811,11 +2841,11 @@ oop.inherits(Occur, Search);
         this.highlight(occurSession, options.re);
         occurSession._emit('changeBackMarker');
     };
-    this.displayOriginalContent = function (editor) {
+    Occur.prototype.displayOriginalContent = function (editor) {
         editor.setSession(this.$originalSession);
         this.$originalSession.$useEmacsStyleLineStart = this.$useEmacsStyleLineStart;
     };
-    this.originalToOccurPosition = function (session, pos) {
+    Occur.prototype.originalToOccurPosition = function (session, pos) {
         var lines = session.$occurMatchingLines;
         var nullPos = { row: 0, column: 0 };
         if (!lines)
@@ -2826,13 +2856,13 @@ oop.inherits(Occur, Search);
         }
         return nullPos;
     };
-    this.occurToOriginalPosition = function (session, pos) {
+    Occur.prototype.occurToOriginalPosition = function (session, pos) {
         var lines = session.$occurMatchingLines;
         if (!lines || !lines[pos.row])
             return pos;
         return { row: lines[pos.row].row, column: pos.column };
     };
-    this.matchingLines = function (session, options) {
+    Occur.prototype.matchingLines = function (session, options) {
         options = oop.mixin({}, options);
         if (!session || !options.needle)
             return [];
@@ -2846,7 +2876,8 @@ oop.inherits(Occur, Search);
                 lines.concat({ row: row, content: session.getLine(row) });
         }, []);
     };
-}).call(Occur.prototype);
+    return Occur;
+}(Search));
 var dom = require('./lib/dom');
 dom.importCssString(".ace_occur-highlight {\n\
     border-radius: 4px;\n\
@@ -3103,18 +3134,27 @@ exports.IncrementalSearchKeyboardHandler = IncrementalSearchKeyboardHandler;
 
 });
 
-define("ace/incremental_search",["require","exports","module","ace/lib/oop","ace/range","ace/search","ace/search_highlight","ace/commands/incremental_search_commands","ace/lib/dom","ace/commands/command_manager","ace/editor","ace/config"], function(require, exports, module){"use strict";
-var oop = require("./lib/oop");
+define("ace/incremental_search",["require","exports","module","ace/range","ace/search","ace/search_highlight","ace/commands/incremental_search_commands","ace/lib/dom","ace/commands/command_manager","ace/editor","ace/config"], function(require, exports, module){"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var Range = require("./range").Range;
 var Search = require("./search").Search;
 var SearchHighlight = require("./search_highlight").SearchHighlight;
 var iSearchCommandModule = require("./commands/incremental_search_commands");
 var ISearchKbd = iSearchCommandModule.IncrementalSearchKeyboardHandler;
-function IncrementalSearch() {
-    this.$options = { wrap: false, skipCurrent: false };
-    this.$keyboardHandler = new ISearchKbd(this);
-}
-oop.inherits(IncrementalSearch, Search);
 function isRegExp(obj) {
     return obj instanceof RegExp;
 }
@@ -3136,8 +3176,15 @@ function stringToRegExp(string, flags) {
 function objectToRegExp(obj) {
     return stringToRegExp(obj.expression, obj.flags);
 }
-(function () {
-    this.activate = function (editor, backwards) {
+var IncrementalSearch = /** @class */ (function (_super) {
+    __extends(IncrementalSearch, _super);
+    function IncrementalSearch() {
+        var _this = _super.call(this) || this;
+        _this.$options = { wrap: false, skipCurrent: false };
+        _this.$keyboardHandler = new ISearchKbd(_this);
+        return _this;
+    }
+    IncrementalSearch.prototype.activate = function (editor, backwards) {
         this.$editor = editor;
         this.$startPos = this.$currentPos = editor.getCursorPosition();
         this.$options.needle = '';
@@ -3149,7 +3196,7 @@ function objectToRegExp(obj) {
         this.selectionFix(editor);
         this.statusMessage(true);
     };
-    this.deactivate = function (reset) {
+    IncrementalSearch.prototype.deactivate = function (reset) {
         this.cancelSearch(reset);
         var editor = this.$editor;
         editor.keyBinding.removeKeyboardHandler(this.$keyboardHandler);
@@ -3160,17 +3207,17 @@ function objectToRegExp(obj) {
         editor.onPaste = this.$originalEditorOnPaste;
         this.message('');
     };
-    this.selectionFix = function (editor) {
+    IncrementalSearch.prototype.selectionFix = function (editor) {
         if (editor.selection.isEmpty() && !editor.session.$emacsMark) {
             editor.clearSelection();
         }
     };
-    this.highlight = function (regexp) {
+    IncrementalSearch.prototype.highlight = function (regexp) {
         var sess = this.$editor.session, hl = sess.$isearchHighlight = sess.$isearchHighlight || sess.addDynamicMarker(new SearchHighlight(null, "ace_isearch-result", "text"));
         hl.setRegexp(regexp);
         sess._emit("changeBackMarker"); // force highlight layer redraw
     };
-    this.cancelSearch = function (reset) {
+    IncrementalSearch.prototype.cancelSearch = function (reset) {
         var e = this.$editor;
         this.$prevNeedle = this.$options.needle;
         this.$options.needle = '';
@@ -3184,7 +3231,7 @@ function objectToRegExp(obj) {
         this.highlight(null);
         return Range.fromPoints(this.$currentPos, this.$currentPos);
     };
-    this.highlightAndFindWithNeedle = function (moveToNext, needleUpdateFunc) {
+    IncrementalSearch.prototype.highlightAndFindWithNeedle = function (moveToNext, needleUpdateFunc) {
         if (!this.$editor)
             return null;
         var options = this.$options;
@@ -3209,7 +3256,7 @@ function objectToRegExp(obj) {
         this.statusMessage(found);
         return found;
     };
-    this.addString = function (s) {
+    IncrementalSearch.prototype.addString = function (s) {
         return this.highlightAndFindWithNeedle(false, function (needle) {
             if (!isRegExp(needle))
                 return needle + s;
@@ -3218,7 +3265,7 @@ function objectToRegExp(obj) {
             return objectToRegExp(reObj);
         });
     };
-    this.removeChar = function (c) {
+    IncrementalSearch.prototype.removeChar = function (c) {
         return this.highlightAndFindWithNeedle(false, function (needle) {
             if (!isRegExp(needle))
                 return needle.substring(0, needle.length - 1);
@@ -3227,7 +3274,7 @@ function objectToRegExp(obj) {
             return objectToRegExp(reObj);
         });
     };
-    this.next = function (options) {
+    IncrementalSearch.prototype.next = function (options) {
         options = options || {};
         this.$options.backwards = !!options.backwards;
         this.$currentPos = this.$editor.getCursorPosition();
@@ -3236,37 +3283,38 @@ function objectToRegExp(obj) {
                 this.$prevNeedle || '' : needle;
         });
     };
-    this.onMouseDown = function (evt) {
+    IncrementalSearch.prototype.onMouseDown = function (evt) {
         this.deactivate();
         return true;
     };
-    this.onPaste = function (text) {
+    IncrementalSearch.prototype.onPaste = function (text) {
         this.addString(text);
     };
-    this.convertNeedleToRegExp = function () {
+    IncrementalSearch.prototype.convertNeedleToRegExp = function () {
         return this.highlightAndFindWithNeedle(false, function (needle) {
             return isRegExp(needle) ? needle : stringToRegExp(needle, 'ig');
         });
     };
-    this.convertNeedleToString = function () {
+    IncrementalSearch.prototype.convertNeedleToString = function () {
         return this.highlightAndFindWithNeedle(false, function (needle) {
             return isRegExp(needle) ? regExpToObject(needle).expression : needle;
         });
     };
-    this.statusMessage = function (found) {
+    IncrementalSearch.prototype.statusMessage = function (found) {
         var options = this.$options, msg = '';
         msg += options.backwards ? 'reverse-' : '';
         msg += 'isearch: ' + options.needle;
         msg += found ? '' : ' (not found)';
         this.message(msg);
     };
-    this.message = function (msg) {
+    IncrementalSearch.prototype.message = function (msg) {
         if (this.$editor.showCommandLine) {
             this.$editor.showCommandLine(msg);
             this.$editor.focus();
         }
     };
-}).call(IncrementalSearch.prototype);
+    return IncrementalSearch;
+}(Search));
 exports.IncrementalSearch = IncrementalSearch;
 var dom = require('./lib/dom');
 dom.importCssString("\n.ace_marker-layer .ace_isearch-result {\n  position: absolute;\n  z-index: 6;\n  box-sizing: border-box;\n}\ndiv.ace_isearch-result {\n  border-radius: 4px;\n  background-color: rgba(255, 200, 0, 0.5);\n  box-shadow: 0 0 4px rgb(255, 200, 0);\n}\n.ace_dark div.ace_isearch-result {\n  background-color: rgb(100, 110, 160);\n  box-shadow: 0 0 4px rgb(80, 90, 140);\n}", "incremental-search-highlighting", false);
@@ -3305,27 +3353,25 @@ var event = require("ace/lib/event");
 var Range = require("ace/range").Range;
 var Tooltip = require("ace/tooltip").Tooltip;
 
-function TokenTooltip (editor) {
-    if (editor.tokenTooltip)
-        return;
-    Tooltip.call(this, editor.container);
-    editor.tokenTooltip = this;
-    this.editor = editor;
+class TokenTooltip extends Tooltip {
+    constructor(editor) {
+        if (editor.tokenTooltip)
+            return;
+        super(editor.container);
+        editor.tokenTooltip = this;
+        this.editor = editor;
 
-    this.update = this.update.bind(this);
-    this.onMouseMove = this.onMouseMove.bind(this);
-    this.onMouseOut = this.onMouseOut.bind(this);
-    event.addListener(editor.renderer.scroller, "mousemove", this.onMouseMove);
-    event.addListener(editor.renderer.content, "mouseout", this.onMouseOut);
-}
-
-oop.inherits(TokenTooltip, Tooltip);
-
-(function(){
-    this.token = {};
-    this.range = new Range();
+        this.update = this.update.bind(this);
+        this.onMouseMove = this.onMouseMove.bind(this);
+        this.onMouseOut = this.onMouseOut.bind(this);
+        event.addListener(editor.renderer.scroller, "mousemove", this.onMouseMove);
+        event.addListener(editor.renderer.content, "mouseout", this.onMouseOut);
+    }
+    token = {};
     
-    this.update = function() {
+    range = new Range();
+    
+    update() {
         this.$timer = null;
         
         var r = this.editor.renderer;
@@ -3373,6 +3419,9 @@ oop.inherits(TokenTooltip, Tooltip);
             this.height = this.getHeight();
             this.tokenText = tokenText;
         }
+        if (!this.isOpen) {
+            this.setTheme(r.theme);
+        }
 
         this.show(null, this.x, this.y);
 
@@ -3382,7 +3431,7 @@ oop.inherits(TokenTooltip, Tooltip);
         this.marker = session.addMarker(this.range, "ace_bracket", "text");
     };
     
-    this.onMouseMove = function(e) {
+    onMouseMove(e) {
         this.x = e.clientX;
         this.y = e.clientY;
         if (this.isOpen) {
@@ -3393,7 +3442,7 @@ oop.inherits(TokenTooltip, Tooltip);
             this.$timer = setTimeout(this.update, 100);
     };
 
-    this.onMouseOut = function(e) {
+    onMouseOut(e) {
         if (e && e.currentTarget.contains(e.relatedTarget))
             return;
         this.hide();
@@ -3401,7 +3450,7 @@ oop.inherits(TokenTooltip, Tooltip);
         this.$timer = clearTimeout(this.$timer);
     };
 
-    this.setPosition = function(x, y) {
+    setPosition(x, y) {
         if (x + 10 + this.width > this.maxWidth)
             x = window.innerWidth - this.width - 10;
         if (y > window.innerHeight * 0.75 || y + 20 + this.height > this.maxHeight)
@@ -3410,16 +3459,86 @@ oop.inherits(TokenTooltip, Tooltip);
         Tooltip.prototype.setPosition.call(this, x + 10, y + 20);
     };
 
-    this.destroy = function() {
+    destroy() {
         this.onMouseOut();
         event.removeListener(this.editor.renderer.scroller, "mousemove", this.onMouseMove);
         event.removeListener(this.editor.renderer.content, "mouseout", this.onMouseOut);
         delete this.editor.tokenTooltip;
     };
 
-}).call(TokenTooltip.prototype);
+}
 
 exports.TokenTooltip = TokenTooltip;
+
+});
+
+define("ace/marker_group",["require","exports","module"], function(require, exports, module){"use strict";
+var MarkerGroup = /** @class */ (function () {
+    function MarkerGroup(session) {
+        this.markers = [];
+        this.session = session;
+        session.addDynamicMarker(this);
+    }
+    MarkerGroup.prototype.getMarkerAtPosition = function (pos) {
+        return this.markers.find(function (marker) {
+            return marker.range.contains(pos.row, pos.column);
+        });
+    };
+    MarkerGroup.prototype.markersComparator = function (a, b) {
+        return a.range.start.row - b.range.start.row;
+    };
+    MarkerGroup.prototype.setMarkers = function (markers) {
+        this.markers = markers.sort(this.markersComparator).slice(0, this.MAX_MARKERS);
+        this.session._signal("changeBackMarker");
+    };
+    MarkerGroup.prototype.update = function (html, markerLayer, session, config) {
+        if (!this.markers || !this.markers.length)
+            return;
+        var visibleRangeStartRow = config.firstRow, visibleRangeEndRow = config.lastRow;
+        var foldLine;
+        var markersOnOneLine = 0;
+        var lastRow = 0;
+        for (var i = 0; i < this.markers.length; i++) {
+            var marker = this.markers[i];
+            if (marker.range.end.row < visibleRangeStartRow)
+                continue;
+            if (marker.range.start.row > visibleRangeEndRow)
+                continue;
+            if (marker.range.start.row === lastRow) {
+                markersOnOneLine++;
+            }
+            else {
+                lastRow = marker.range.start.row;
+                markersOnOneLine = 0;
+            }
+            if (markersOnOneLine > 200) {
+                continue;
+            }
+            var markerVisibleRange = marker.range.clipRows(visibleRangeStartRow, visibleRangeEndRow);
+            if (markerVisibleRange.start.row === markerVisibleRange.end.row
+                && markerVisibleRange.start.column === markerVisibleRange.end.column) {
+                continue; // visible range is empty
+            }
+            var screenRange = markerVisibleRange.toScreenRange(session);
+            if (screenRange.isEmpty()) {
+                foldLine = session.getNextFoldLine(markerVisibleRange.end.row, foldLine);
+                if (foldLine && foldLine.end.row > markerVisibleRange.end.row) {
+                    visibleRangeStartRow = foldLine.end.row;
+                }
+                continue;
+            }
+            if (screenRange.isMultiLine()) {
+                markerLayer.drawTextMarker(html, screenRange, marker.className, config);
+            }
+            else {
+                markerLayer.drawSingleLineMarker(html, screenRange, marker.className, config);
+            }
+        }
+    };
+    return MarkerGroup;
+}());
+MarkerGroup.prototype.MAX_MARKERS = 10000;
+exports.MarkerGroup = MarkerGroup;
 
 });
 
@@ -3430,7 +3549,8 @@ var EventEmitter = require("./lib/event_emitter").EventEmitter;
 var Editor = require("./editor").Editor;
 var Renderer = require("./virtual_renderer").VirtualRenderer;
 var EditSession = require("./edit_session").EditSession;
-var Split = function (container, theme, splits) {
+var Split;
+Split = function (container, theme, splits) {
     this.BELOW = 1;
     this.BESIDE = 0;
     this.$container = container;
@@ -3682,6 +3802,7 @@ var themeData = [
     ["Kuroir"],
     ["KatzenMilch"],
     ["SQL Server", "sqlserver", "light"],
+    ["CloudEditor", "cloud_editor", "light"],
     ["Ambiance", "ambiance", "dark"],
     ["Chaos", "chaos", "dark"],
     ["Clouds Midnight", "clouds_midnight", "dark"],
@@ -3705,7 +3826,9 @@ var themeData = [
     ["Tomorrow Night Bright", "tomorrow_night_bright", "dark"],
     ["Tomorrow Night 80s", "tomorrow_night_eighties", "dark"],
     ["Twilight", "twilight", "dark"],
-    ["Vibrant Ink", "vibrant_ink", "dark"]
+    ["Vibrant Ink", "vibrant_ink", "dark"],
+    ["GitHub Dark", "github_dark", "dark"],
+    ["CloudEditor Dark", "cloud_editor_dark", "dark"]
 ];
 exports.themesByName = {};
 exports.themes = themeData.map(function (data) {
@@ -3911,24 +4034,36 @@ var optionGroups = {
         },
         "Custom scrollbar": {
             path: "customScrollbar"
+        },
+        "Use SVG gutter icons": {
+            path: "useSvgGutterIcons"
+        },
+        "Annotations for folded lines": {
+            path: "showFoldedAnnotations"
+        },
+        "Keyboard Accessibility Mode": {
+            path: "enableKeyboardAccessibility"
+        },
+        "Gutter tooltip follows mouse": {
+            path: "tooltipFollowsMouse",
+            defaultValue: true
         }
     }
 };
-var OptionPanel = function (editor, element) {
-    this.editor = editor;
-    this.container = element || document.createElement("div");
-    this.groups = [];
-    this.options = {};
-};
-(function () {
-    oop.implement(this, EventEmitter);
-    this.add = function (config) {
+var OptionPanel = /** @class */ (function () {
+    function OptionPanel(editor, element) {
+        this.editor = editor;
+        this.container = element || document.createElement("div");
+        this.groups = [];
+        this.options = {};
+    }
+    OptionPanel.prototype.add = function (config) {
         if (config.Main)
             oop.mixin(optionGroups.Main, config.Main);
         if (config.More)
             oop.mixin(optionGroups.More, config.More);
     };
-    this.render = function () {
+    OptionPanel.prototype.render = function () {
         this.container.innerHTML = "";
         buildDom(["table", { role: "presentation", id: "controls" },
             this.renderOptionGroup(optionGroups.Main),
@@ -3940,7 +4075,7 @@ var OptionPanel = function (editor, element) {
             ["tr", null, ["td", { colspan: 2 }, "version " + config.version]]
         ], this.container);
     };
-    this.renderOptionGroup = function (group) {
+    OptionPanel.prototype.renderOptionGroup = function (group) {
         return Object.keys(group).map(function (key, i) {
             var item = group[key];
             if (!item.position)
@@ -3954,7 +4089,7 @@ var OptionPanel = function (editor, element) {
             return this.renderOption(item.label, item);
         }, this);
     };
-    this.renderOptionControl = function (key, option) {
+    OptionPanel.prototype.renderOptionControl = function (key, option) {
         var self = this;
         if (Array.isArray(option)) {
             return option.map(function (x) {
@@ -4041,7 +4176,7 @@ var OptionPanel = function (editor, element) {
         }
         return control;
     };
-    this.renderOption = function (key, option) {
+    OptionPanel.prototype.renderOption = function (key, option) {
         if (option.path && !option.onchange && !this.editor.$options[option.path])
             return;
         var path = Array.isArray(option) ? option[0].path : option.path;
@@ -4053,7 +4188,7 @@ var OptionPanel = function (editor, element) {
                 ["label", { for: safeKey, id: safeId }, key]
             ], ["td", control]];
     };
-    this.setOption = function (option, value) {
+    OptionPanel.prototype.setOption = function (option, value) {
         if (typeof option == "string")
             option = this.options[option];
         if (value == "false")
@@ -4072,54 +4207,364 @@ var OptionPanel = function (editor, element) {
             this.editor.setOption(option.path, value);
         this._signal("setOption", { name: option.path, value: value });
     };
-    this.getOption = function (option) {
+    OptionPanel.prototype.getOption = function (option) {
         if (option.getValue)
             return option.getValue();
         return this.editor.getOption(option.path);
     };
-}).call(OptionPanel.prototype);
+    return OptionPanel;
+}());
+oop.implement(OptionPanel.prototype, EventEmitter);
 exports.OptionPanel = OptionPanel;
 
 });
 
-define("ace/ext/statusbar",["require","exports","module","ace/lib/dom","ace/lib/lang"], function(require, exports, module){"use strict";
-var dom = require("../lib/dom");
+define("ace/autocomplete/popup",["require","exports","module","ace/virtual_renderer","ace/editor","ace/range","ace/lib/event","ace/lib/lang","ace/lib/dom","ace/config","ace/lib/useragent"], function(require, exports, module){"use strict";
+var Renderer = require("../virtual_renderer").VirtualRenderer;
+var Editor = require("../editor").Editor;
+var Range = require("../range").Range;
+var event = require("../lib/event");
 var lang = require("../lib/lang");
-var StatusBar = function (editor, parentNode) {
-    this.element = dom.createElement("div");
-    this.element.className = "ace_status-indicator";
-    this.element.style.cssText = "display: inline-block;";
-    parentNode.appendChild(this.element);
-    var statusUpdate = lang.delayedCall(function () {
-        this.updateStatus(editor);
-    }.bind(this)).schedule.bind(null, 100);
-    editor.on("changeStatus", statusUpdate);
-    editor.on("changeSelection", statusUpdate);
-    editor.on("keyboardActivity", statusUpdate);
+var dom = require("../lib/dom");
+var nls = require("../config").nls;
+var userAgent = require("./../lib/useragent");
+var getAriaId = function (index) {
+    return "suggest-aria-id:".concat(index);
 };
-(function () {
-    this.updateStatus = function (editor) {
-        var status = [];
-        function add(str, separator) {
-            str && status.push(str, separator || "|");
+var popupAriaRole = userAgent.isSafari ? "menu" : "listbox";
+var optionAriaRole = userAgent.isSafari ? "menuitem" : "option";
+var ariaActiveState = userAgent.isSafari ? "aria-current" : "aria-selected";
+var $singleLineEditor = function (el) {
+    var renderer = new Renderer(el);
+    renderer.$maxLines = 4;
+    var editor = new Editor(renderer);
+    editor.setHighlightActiveLine(false);
+    editor.setShowPrintMargin(false);
+    editor.renderer.setShowGutter(false);
+    editor.renderer.setHighlightGutterLine(false);
+    editor.$mouseHandler.$focusTimeout = 0;
+    editor.$highlightTagPending = true;
+    return editor;
+};
+var AcePopup = /** @class */ (function () {
+    function AcePopup(parentNode) {
+        var el = dom.createElement("div");
+        var popup = $singleLineEditor(el);
+        if (parentNode) {
+            parentNode.appendChild(el);
         }
-        add(editor.keyBinding.getStatusText(editor));
-        if (editor.commands.recording)
-            add("REC");
-        var sel = editor.selection;
-        var c = sel.lead;
-        if (!sel.isEmpty()) {
-            var r = editor.getSelectionRange();
-            add("(" + (r.end.row - r.start.row) + ":" + (r.end.column - r.start.column) + ")", " ");
-        }
-        add(c.row + ":" + c.column, " ");
-        if (sel.rangeCount)
-            add("[" + sel.rangeCount + "]", " ");
-        status.pop();
-        this.element.textContent = status.join("");
-    };
-}).call(StatusBar.prototype);
-exports.StatusBar = StatusBar;
+        el.style.display = "none";
+        popup.renderer.content.style.cursor = "default";
+        popup.renderer.setStyle("ace_autocomplete");
+        popup.renderer.$textLayer.element.setAttribute("role", popupAriaRole);
+        popup.renderer.$textLayer.element.setAttribute("aria-roledescription", nls("autocomplete.popup.aria-roledescription", "Autocomplete suggestions"));
+        popup.renderer.$textLayer.element.setAttribute("aria-label", nls("autocomplete.popup.aria-label", "Autocomplete suggestions"));
+        popup.renderer.textarea.setAttribute("aria-hidden", "true");
+        popup.setOption("displayIndentGuides", false);
+        popup.setOption("dragDelay", 150);
+        var noop = function () { };
+        popup.focus = noop;
+        popup.$isFocused = true;
+        popup.renderer.$cursorLayer.restartTimer = noop;
+        popup.renderer.$cursorLayer.element.style.opacity = "0";
+        popup.renderer.$maxLines = 8;
+        popup.renderer.$keepTextAreaAtCursor = false;
+        popup.setHighlightActiveLine(false);
+        popup.session.highlight("");
+        popup.session.$searchHighlight.clazz = "ace_highlight-marker";
+        popup.on("mousedown", function (e) {
+            var pos = e.getDocumentPosition();
+            popup.selection.moveToPosition(pos);
+            selectionMarker.start.row = selectionMarker.end.row = pos.row;
+            e.stop();
+        });
+        var lastMouseEvent;
+        var hoverMarker = new Range(-1, 0, -1, Infinity);
+        var selectionMarker = new Range(-1, 0, -1, Infinity);
+        selectionMarker.id = popup.session.addMarker(selectionMarker, "ace_active-line", "fullLine");
+        popup.setSelectOnHover = function (val) {
+            if (!val) {
+                hoverMarker.id = popup.session.addMarker(hoverMarker, "ace_line-hover", "fullLine");
+            }
+            else if (hoverMarker.id) {
+                popup.session.removeMarker(hoverMarker.id);
+                hoverMarker.id = null;
+            }
+        };
+        popup.setSelectOnHover(false);
+        popup.on("mousemove", function (e) {
+            if (!lastMouseEvent) {
+                lastMouseEvent = e;
+                return;
+            }
+            if (lastMouseEvent.x == e.x && lastMouseEvent.y == e.y) {
+                return;
+            }
+            lastMouseEvent = e;
+            lastMouseEvent.scrollTop = popup.renderer.scrollTop;
+            popup.isMouseOver = true;
+            var row = lastMouseEvent.getDocumentPosition().row;
+            if (hoverMarker.start.row != row) {
+                if (!hoverMarker.id)
+                    popup.setRow(row);
+                setHoverMarker(row);
+            }
+        });
+        popup.renderer.on("beforeRender", function () {
+            if (lastMouseEvent && hoverMarker.start.row != -1) {
+                lastMouseEvent.$pos = null;
+                var row = lastMouseEvent.getDocumentPosition().row;
+                if (!hoverMarker.id)
+                    popup.setRow(row);
+                setHoverMarker(row, true);
+            }
+        });
+        popup.renderer.on("afterRender", function () {
+            var row = popup.getRow();
+            var t = popup.renderer.$textLayer;
+            var selected = /** @type {HTMLElement|null} */ (t.element.childNodes[row - t.config.firstRow]);
+            var el = document.activeElement; // Active element is textarea of main editor
+            if (selected !== popup.selectedNode && popup.selectedNode) {
+                dom.removeCssClass(popup.selectedNode, "ace_selected");
+                el.removeAttribute("aria-activedescendant");
+                popup.selectedNode.removeAttribute(ariaActiveState);
+                popup.selectedNode.removeAttribute("id");
+            }
+            popup.selectedNode = selected;
+            if (selected) {
+                dom.addCssClass(selected, "ace_selected");
+                var ariaId = getAriaId(row);
+                selected.id = ariaId;
+                t.element.setAttribute("aria-activedescendant", ariaId);
+                el.setAttribute("aria-activedescendant", ariaId);
+                selected.setAttribute("role", optionAriaRole);
+                selected.setAttribute("aria-roledescription", nls("autocomplete.popup.item.aria-roledescription", "item"));
+                selected.setAttribute("aria-label", popup.getData(row).caption || popup.getData(row).value);
+                selected.setAttribute("aria-setsize", popup.data.length);
+                selected.setAttribute("aria-posinset", row + 1);
+                selected.setAttribute("aria-describedby", "doc-tooltip");
+                selected.setAttribute(ariaActiveState, "true");
+            }
+        });
+        var hideHoverMarker = function () { setHoverMarker(-1); };
+        var setHoverMarker = function (row, suppressRedraw) {
+            if (row !== hoverMarker.start.row) {
+                hoverMarker.start.row = hoverMarker.end.row = row;
+                if (!suppressRedraw)
+                    popup.session._emit("changeBackMarker");
+                popup._emit("changeHoverMarker");
+            }
+        };
+        popup.getHoveredRow = function () {
+            return hoverMarker.start.row;
+        };
+        event.addListener(popup.container, "mouseout", function () {
+            popup.isMouseOver = false;
+            hideHoverMarker();
+        });
+        popup.on("hide", hideHoverMarker);
+        popup.on("changeSelection", hideHoverMarker);
+        popup.session.doc.getLength = function () {
+            return popup.data.length;
+        };
+        popup.session.doc.getLine = function (i) {
+            var data = popup.data[i];
+            if (typeof data == "string")
+                return data;
+            return (data && data.value) || "";
+        };
+        var bgTokenizer = popup.session.bgTokenizer;
+        bgTokenizer.$tokenizeRow = function (row) {
+            var data = popup.data[row];
+            var tokens = [];
+            if (!data)
+                return tokens;
+            if (typeof data == "string")
+                data = { value: data };
+            var caption = data.caption || data.value || data.name;
+            function addToken(value, className) {
+                value && tokens.push({
+                    type: (data.className || "") + (className || ""),
+                    value: value
+                });
+            }
+            var lower = caption.toLowerCase();
+            var filterText = (popup.filterText || "").toLowerCase();
+            var lastIndex = 0;
+            var lastI = 0;
+            for (var i = 0; i <= filterText.length; i++) {
+                if (i != lastI && (data.matchMask & (1 << i) || i == filterText.length)) {
+                    var sub = filterText.slice(lastI, i);
+                    lastI = i;
+                    var index = lower.indexOf(sub, lastIndex);
+                    if (index == -1)
+                        continue;
+                    addToken(caption.slice(lastIndex, index), "");
+                    lastIndex = index + sub.length;
+                    addToken(caption.slice(index, lastIndex), "completion-highlight");
+                }
+            }
+            addToken(caption.slice(lastIndex, caption.length), "");
+            tokens.push({ type: "completion-spacer", value: " " });
+            if (data.meta)
+                tokens.push({ type: "completion-meta", value: data.meta });
+            if (data.message)
+                tokens.push({ type: "completion-message", value: data.message });
+            return tokens;
+        };
+        bgTokenizer.$updateOnChange = noop;
+        bgTokenizer.start = noop;
+        popup.session.$computeWidth = function () {
+            return this.screenWidth = 0;
+        };
+        popup.isOpen = false;
+        popup.isTopdown = false;
+        popup.autoSelect = true;
+        popup.filterText = "";
+        popup.isMouseOver = false;
+        popup.data = [];
+        popup.setData = function (list, filterText) {
+            popup.filterText = filterText || "";
+            popup.setValue(lang.stringRepeat("\n", list.length), -1);
+            popup.data = list || [];
+            popup.setRow(0);
+        };
+        popup.getData = function (row) {
+            return popup.data[row];
+        };
+        popup.getRow = function () {
+            return selectionMarker.start.row;
+        };
+        popup.setRow = function (line) {
+            line = Math.max(this.autoSelect ? 0 : -1, Math.min(this.data.length - 1, line));
+            if (selectionMarker.start.row != line) {
+                popup.selection.clearSelection();
+                selectionMarker.start.row = selectionMarker.end.row = line || 0;
+                popup.session._emit("changeBackMarker");
+                popup.moveCursorTo(line || 0, 0);
+                if (popup.isOpen)
+                    popup._signal("select");
+            }
+        };
+        popup.on("changeSelection", function () {
+            if (popup.isOpen)
+                popup.setRow(popup.selection.lead.row);
+            popup.renderer.scrollCursorIntoView();
+        });
+        popup.hide = function () {
+            this.container.style.display = "none";
+            popup.anchorPos = null;
+            popup.anchor = null;
+            if (popup.isOpen) {
+                popup.isOpen = false;
+                this._signal("hide");
+            }
+        };
+        popup.tryShow = function (pos, lineHeight, anchor, forceShow) {
+            if (!forceShow && popup.isOpen && popup.anchorPos && popup.anchor &&
+                popup.anchorPos.top === pos.top && popup.anchorPos.left === pos.left &&
+                popup.anchor === anchor) {
+                return true;
+            }
+            var el = this.container;
+            var screenHeight = window.innerHeight;
+            var screenWidth = window.innerWidth;
+            var renderer = this.renderer;
+            var maxH = renderer.$maxLines * lineHeight * 1.4;
+            var dims = { top: 0, bottom: 0, left: 0 };
+            var spaceBelow = screenHeight - pos.top - 3 * this.$borderSize - lineHeight;
+            var spaceAbove = pos.top - 3 * this.$borderSize;
+            if (!anchor) {
+                if (spaceAbove <= spaceBelow || spaceBelow >= maxH) {
+                    anchor = "bottom";
+                }
+                else {
+                    anchor = "top";
+                }
+            }
+            if (anchor === "top") {
+                dims.bottom = pos.top - this.$borderSize;
+                dims.top = dims.bottom - maxH;
+            }
+            else if (anchor === "bottom") {
+                dims.top = pos.top + lineHeight + this.$borderSize;
+                dims.bottom = dims.top + maxH;
+            }
+            var fitsX = dims.top >= 0 && dims.bottom <= screenHeight;
+            if (!forceShow && !fitsX) {
+                return false;
+            }
+            if (!fitsX) {
+                if (anchor === "top") {
+                    renderer.$maxPixelHeight = spaceAbove;
+                }
+                else {
+                    renderer.$maxPixelHeight = spaceBelow;
+                }
+            }
+            else {
+                renderer.$maxPixelHeight = null;
+            }
+            if (anchor === "top") {
+                el.style.top = "";
+                el.style.bottom = (screenHeight - dims.bottom) + "px";
+                popup.isTopdown = false;
+            }
+            else {
+                el.style.top = dims.top + "px";
+                el.style.bottom = "";
+                popup.isTopdown = true;
+            }
+            el.style.display = "";
+            var left = pos.left;
+            if (left + el.offsetWidth > screenWidth)
+                left = screenWidth - el.offsetWidth;
+            el.style.left = left + "px";
+            el.style.right = "";
+            if (!popup.isOpen) {
+                popup.isOpen = true;
+                this._signal("show");
+                lastMouseEvent = null;
+            }
+            popup.anchorPos = pos;
+            popup.anchor = anchor;
+            return true;
+        };
+        popup.show = function (pos, lineHeight, topdownOnly) {
+            this.tryShow(pos, lineHeight, topdownOnly ? "bottom" : undefined, true);
+        };
+        popup.goTo = function (where) {
+            var row = this.getRow();
+            var max = this.session.getLength() - 1;
+            switch (where) {
+                case "up":
+                    row = row <= 0 ? max : row - 1;
+                    break;
+                case "down":
+                    row = row >= max ? -1 : row + 1;
+                    break;
+                case "start":
+                    row = 0;
+                    break;
+                case "end":
+                    row = max;
+                    break;
+            }
+            this.setRow(row);
+        };
+        popup.getTextLeftOffset = function () {
+            return this.$borderSize + this.renderer.$padding + this.$imageSize;
+        };
+        popup.$imageSize = 0;
+        popup.$borderSize = 1;
+        return popup;
+    }
+    return AcePopup;
+}());
+dom.importCssString("\n.ace_editor.ace_autocomplete .ace_marker-layer .ace_active-line {\n    background-color: #CAD6FA;\n    z-index: 1;\n}\n.ace_dark.ace_editor.ace_autocomplete .ace_marker-layer .ace_active-line {\n    background-color: #3a674e;\n}\n.ace_editor.ace_autocomplete .ace_line-hover {\n    border: 1px solid #abbffe;\n    margin-top: -1px;\n    background: rgba(233,233,253,0.4);\n    position: absolute;\n    z-index: 2;\n}\n.ace_dark.ace_editor.ace_autocomplete .ace_line-hover {\n    border: 1px solid rgba(109, 150, 13, 0.8);\n    background: rgba(58, 103, 78, 0.62);\n}\n.ace_completion-meta {\n    opacity: 0.5;\n    margin-left: 0.9em;\n}\n.ace_completion-message {\n    margin-left: 0.9em;\n    color: blue;\n}\n.ace_editor.ace_autocomplete .ace_completion-highlight{\n    color: #2d69c7;\n}\n.ace_dark.ace_editor.ace_autocomplete .ace_completion-highlight{\n    color: #93ca12;\n}\n.ace_editor.ace_autocomplete {\n    width: 300px;\n    z-index: 200000;\n    border: 1px lightgray solid;\n    position: fixed;\n    box-shadow: 2px 3px 5px rgba(0,0,0,.2);\n    line-height: 1.4;\n    background: #fefefe;\n    color: #111;\n}\n.ace_dark.ace_editor.ace_autocomplete {\n    border: 1px #484747 solid;\n    box-shadow: 2px 3px 5px rgba(0, 0, 0, 0.51);\n    line-height: 1.4;\n    background: #25282c;\n    color: #c1c1c1;\n}\n.ace_autocomplete .ace_text-layer  {\n    width: calc(100% - 8px);\n}\n.ace_autocomplete .ace_line {\n    display: flex;\n    align-items: center;\n}\n.ace_autocomplete .ace_line > * {\n    min-width: 0;\n    flex: 0 0 auto;\n}\n.ace_autocomplete .ace_line .ace_ {\n    flex: 0 1 auto;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n.ace_autocomplete .ace_completion-spacer {\n    flex: 1;\n}\n.ace_autocomplete.ace_loading:after  {\n    content: \"\";\n    position: absolute;\n    top: 0px;\n    height: 2px;\n    width: 8%;\n    background: blue;\n    z-index: 100;\n    animation: ace_progress 3s infinite linear;\n    animation-delay: 300ms;\n    transform: translateX(-100%) scaleX(1);\n}\n@keyframes ace_progress {\n    0% { transform: translateX(-100%) scaleX(1) }\n    50% { transform: translateX(625%) scaleX(2) } \n    100% { transform: translateX(1500%) scaleX(3) } \n}\n@media (prefers-reduced-motion) {\n    .ace_autocomplete.ace_loading:after {\n        transform: translateX(625%) scaleX(2);\n        animation: none;\n     }\n}\n", "autocompletion.css", false);
+exports.AcePopup = AcePopup;
+exports.$singleLineEditor = $singleLineEditor;
+exports.getAriaId = getAriaId;
 
 });
 
@@ -4205,16 +4650,16 @@ function date(dateFormat) {
     var str = new Date().toLocaleString("en-us", dateFormat);
     return str.length == 1 ? "0" + str : str;
 }
-var SnippetManager = function () {
-    this.snippetMap = {};
-    this.snippetNameMap = {};
-};
-(function () {
-    oop.implement(this, EventEmitter);
-    this.getTokenizer = function () {
-        return SnippetManager.$tokenizer || this.createTokenizer();
+var SnippetManager = /** @class */ (function () {
+    function SnippetManager() {
+        this.snippetMap = {};
+        this.snippetNameMap = {};
+        this.variables = VARIABLES;
+    }
+    SnippetManager.prototype.getTokenizer = function () {
+        return SnippetManager["$tokenizer"] || this.createTokenizer();
     };
-    this.createTokenizer = function () {
+    SnippetManager.prototype.createTokenizer = function () {
         function TabstopToken(str) {
             str = str.substr(1);
             if (/^\d+$/.test(str))
@@ -4235,7 +4680,7 @@ var SnippetManager = function () {
             },
             next: "formatString"
         };
-        SnippetManager.$tokenizer = new Tokenizer({
+        SnippetManager["$tokenizer"] = new Tokenizer({
             start: [
                 { regex: /\\./, onMatch: function (val, state, stack) {
                         var ch = val[1];
@@ -4332,14 +4777,14 @@ var SnippetManager = function () {
                 { regex: "([^:}\\\\]|\\\\.)*:?", token: "", next: "formatString" }
             ]
         });
-        return SnippetManager.$tokenizer;
+        return SnippetManager["$tokenizer"];
     };
-    this.tokenizeTmSnippet = function (str, startState) {
+    SnippetManager.prototype.tokenizeTmSnippet = function (str, startState) {
         return this.getTokenizer().getLineTokens(str, startState).tokens.map(function (x) {
             return x.value || x;
         });
     };
-    this.getVariableValue = function (editor, name, indentation) {
+    SnippetManager.prototype.getVariableValue = function (editor, name, indentation) {
         if (/^\d+$/.test(name))
             return (this.variables.__ || {})[name] || "";
         if (/^[A-Z]\d+$/.test(name))
@@ -4352,8 +4797,7 @@ var SnippetManager = function () {
             value = this.variables[name](editor, name, indentation);
         return value == null ? "" : value;
     };
-    this.variables = VARIABLES;
-    this.tmStrFormat = function (str, ch, editor) {
+    SnippetManager.prototype.tmStrFormat = function (str, ch, editor) {
         if (!ch.fmt)
             return str;
         var flag = ch.flag || "";
@@ -4396,14 +4840,14 @@ var SnippetManager = function () {
         });
         return formatted;
     };
-    this.tmFormatFunction = function (str, ch, editor) {
+    SnippetManager.prototype.tmFormatFunction = function (str, ch, editor) {
         if (ch.formatFunction == "upcase")
             return str.toUpperCase();
         if (ch.formatFunction == "downcase")
             return str.toLowerCase();
         return str;
     };
-    this.resolveVariables = function (snippet, editor) {
+    SnippetManager.prototype.resolveVariables = function (snippet, editor) {
         var result = [];
         var indentation = "";
         var afterNewLine = true;
@@ -4462,131 +4906,31 @@ var SnippetManager = function () {
         }
         return result;
     };
-    this.insertSnippetForSelection = function (editor, snippetText) {
-        var cursor = editor.getCursorPosition();
-        var line = editor.session.getLine(cursor.row);
-        var tabString = editor.session.getTabString();
-        var indentString = line.match(/^\s*/)[0];
-        if (cursor.column < indentString.length)
-            indentString = indentString.slice(0, cursor.column);
-        snippetText = snippetText.replace(/\r/g, "");
-        var tokens = this.tokenizeTmSnippet(snippetText);
-        tokens = this.resolveVariables(tokens, editor);
-        tokens = tokens.map(function (x) {
-            if (x == "\n")
-                return x + indentString;
-            if (typeof x == "string")
-                return x.replace(/\t/g, tabString);
-            return x;
-        });
-        var tabstops = [];
-        tokens.forEach(function (p, i) {
-            if (typeof p != "object")
-                return;
-            var id = p.tabstopId;
-            var ts = tabstops[id];
-            if (!ts) {
-                ts = tabstops[id] = [];
-                ts.index = id;
-                ts.value = "";
-                ts.parents = {};
-            }
-            if (ts.indexOf(p) !== -1)
-                return;
-            if (p.choices && !ts.choices)
-                ts.choices = p.choices;
-            ts.push(p);
-            var i1 = tokens.indexOf(p, i + 1);
-            if (i1 === -1)
-                return;
-            var value = tokens.slice(i + 1, i1);
-            var isNested = value.some(function (t) { return typeof t === "object"; });
-            if (isNested && !ts.value) {
-                ts.value = value;
-            }
-            else if (value.length && (!ts.value || typeof ts.value !== "string")) {
-                ts.value = value.join("");
-            }
-        });
-        tabstops.forEach(function (ts) { ts.length = 0; });
-        var expanding = {};
-        function copyValue(val) {
-            var copy = [];
-            for (var i = 0; i < val.length; i++) {
-                var p = val[i];
-                if (typeof p == "object") {
-                    if (expanding[p.tabstopId])
-                        continue;
-                    var j = val.lastIndexOf(p, i - 1);
-                    p = copy[j] || { tabstopId: p.tabstopId };
-                }
-                copy[i] = p;
-            }
-            return copy;
-        }
-        for (var i = 0; i < tokens.length; i++) {
-            var p = tokens[i];
-            if (typeof p != "object")
-                continue;
-            var id = p.tabstopId;
-            var ts = tabstops[id];
-            var i1 = tokens.indexOf(p, i + 1);
-            if (expanding[id]) {
-                if (expanding[id] === p) {
-                    delete expanding[id];
-                    Object.keys(expanding).forEach(function (parentId) {
-                        ts.parents[parentId] = true;
-                    });
-                }
-                continue;
-            }
-            expanding[id] = p;
-            var value = ts.value;
-            if (typeof value !== "string")
-                value = copyValue(value);
-            else if (p.fmt)
-                value = this.tmStrFormat(value, p, editor);
-            tokens.splice.apply(tokens, [i + 1, Math.max(0, i1 - i)].concat(value, p));
-            if (ts.indexOf(p) === -1)
-                ts.push(p);
-        }
-        var row = 0, column = 0;
-        var text = "";
-        tokens.forEach(function (t) {
-            if (typeof t === "string") {
-                var lines = t.split("\n");
-                if (lines.length > 1) {
-                    column = lines[lines.length - 1].length;
-                    row += lines.length - 1;
-                }
-                else
-                    column += t.length;
-                text += t;
-            }
-            else if (t) {
-                if (!t.start)
-                    t.start = { row: row, column: column };
-                else
-                    t.end = { row: row, column: column };
-            }
-        });
+    SnippetManager.prototype.getDisplayTextForSnippet = function (editor, snippetText) {
+        var processedSnippet = processSnippetText.call(this, editor, snippetText);
+        return processedSnippet.text;
+    };
+    SnippetManager.prototype.insertSnippetForSelection = function (editor, snippetText, options) {
+        if (options === void 0) { options = {}; }
+        var processedSnippet = processSnippetText.call(this, editor, snippetText, options);
         var range = editor.getSelectionRange();
-        var end = editor.session.replace(range, text);
+        var end = editor.session.replace(range, processedSnippet.text);
         var tabstopManager = new TabstopManager(editor);
         var selectionId = editor.inVirtualSelectionMode && editor.selection.index;
-        tabstopManager.addTabstops(tabstops, range.start, end, selectionId);
+        tabstopManager.addTabstops(processedSnippet.tabstops, range.start, end, selectionId);
     };
-    this.insertSnippet = function (editor, snippetText) {
+    SnippetManager.prototype.insertSnippet = function (editor, snippetText, options) {
+        if (options === void 0) { options = {}; }
         var self = this;
         if (editor.inVirtualSelectionMode)
-            return self.insertSnippetForSelection(editor, snippetText);
+            return self.insertSnippetForSelection(editor, snippetText, options);
         editor.forEachSelection(function () {
-            self.insertSnippetForSelection(editor, snippetText);
+            self.insertSnippetForSelection(editor, snippetText, options);
         }, null, { keepOrder: true });
         if (editor.tabstopManager)
             editor.tabstopManager.tabNext();
     };
-    this.$getScope = function (editor) {
+    SnippetManager.prototype.$getScope = function (editor) {
         var scope = editor.session.$mode.$id || "";
         scope = scope.split("/").pop();
         if (scope === "html" || scope === "php") {
@@ -4608,7 +4952,7 @@ var SnippetManager = function () {
         }
         return scope;
     };
-    this.getActiveScopes = function (editor) {
+    SnippetManager.prototype.getActiveScopes = function (editor) {
         var scope = this.$getScope(editor);
         var scopes = [scope];
         var snippetMap = this.snippetMap;
@@ -4618,7 +4962,7 @@ var SnippetManager = function () {
         scopes.push("_");
         return scopes;
     };
-    this.expandWithTab = function (editor, options) {
+    SnippetManager.prototype.expandWithTab = function (editor, options) {
         var self = this;
         var result = editor.forEachSelection(function () {
             return self.expandSnippetForSelection(editor, options);
@@ -4627,7 +4971,7 @@ var SnippetManager = function () {
             editor.tabstopManager.tabNext();
         return result;
     };
-    this.expandSnippetForSelection = function (editor, options) {
+    SnippetManager.prototype.expandSnippetForSelection = function (editor, options) {
         var cursor = editor.getCursorPosition();
         var line = editor.session.getLine(cursor.row);
         var before = line.substring(0, cursor.column);
@@ -4651,7 +4995,7 @@ var SnippetManager = function () {
         this.variables.M__ = this.variables.T__ = null;
         return true;
     };
-    this.findMatchingSnippet = function (snippetList, before, after) {
+    SnippetManager.prototype.findMatchingSnippet = function (snippetList, before, after) {
         for (var i = snippetList.length; i--;) {
             var s = snippetList[i];
             if (s.startRe && !s.startRe.test(before))
@@ -4667,9 +5011,7 @@ var SnippetManager = function () {
             return s;
         }
     };
-    this.snippetMap = {};
-    this.snippetNameMap = {};
-    this.register = function (snippets, scope) {
+    SnippetManager.prototype.register = function (snippets, scope) {
         var snippetMap = this.snippetMap;
         var snippetNameMap = this.snippetNameMap;
         var self = this;
@@ -4737,7 +5079,7 @@ var SnippetManager = function () {
         }
         this._signal("registerSnippets", { scope: scope });
     };
-    this.unregister = function (snippets, scope) {
+    SnippetManager.prototype.unregister = function (snippets, scope) {
         var snippetMap = this.snippetMap;
         var snippetNameMap = this.snippetNameMap;
         function removeSnippet(s) {
@@ -4755,9 +5097,9 @@ var SnippetManager = function () {
         else if (Array.isArray(snippets))
             snippets.forEach(removeSnippet);
     };
-    this.parseSnippetFile = function (str) {
+    SnippetManager.prototype.parseSnippetFile = function (str) {
         str = str.replace(/\r/g, "");
-        var list = [], snippet = {};
+        var list = [], /**@type{Snippet}*/ snippet = {};
         var re = /^#.*|^({[\s\S]*})\s*$|^(\S+) (.*)$|^((?:\n*\t.*)+)/gm;
         var m;
         while (m = re.exec(str)) {
@@ -4794,7 +5136,7 @@ var SnippetManager = function () {
         }
         return list;
     };
-    this.getSnippetByName = function (name, editor) {
+    SnippetManager.prototype.getSnippetByName = function (name, editor) {
         var snippetMap = this.snippetNameMap;
         var snippet;
         this.getActiveScopes(editor).some(function (scope) {
@@ -4805,49 +5147,168 @@ var SnippetManager = function () {
         }, this);
         return snippet;
     };
-}).call(SnippetManager.prototype);
-var TabstopManager = function (editor) {
-    if (editor.tabstopManager)
-        return editor.tabstopManager;
-    editor.tabstopManager = this;
-    this.$onChange = this.onChange.bind(this);
-    this.$onChangeSelection = lang.delayedCall(this.onChangeSelection.bind(this)).schedule;
-    this.$onChangeSession = this.onChangeSession.bind(this);
-    this.$onAfterExec = this.onAfterExec.bind(this);
-    this.attach(editor);
+    return SnippetManager;
+}());
+oop.implement(SnippetManager.prototype, EventEmitter);
+var processSnippetText = function (editor, snippetText, options) {
+    if (options === void 0) { options = {}; }
+    var cursor = editor.getCursorPosition();
+    var line = editor.session.getLine(cursor.row);
+    var tabString = editor.session.getTabString();
+    var indentString = line.match(/^\s*/)[0];
+    if (cursor.column < indentString.length)
+        indentString = indentString.slice(0, cursor.column);
+    snippetText = snippetText.replace(/\r/g, "");
+    var tokens = this.tokenizeTmSnippet(snippetText);
+    tokens = this.resolveVariables(tokens, editor);
+    tokens = tokens.map(function (x) {
+        if (x == "\n" && !options.excludeExtraIndent)
+            return x + indentString;
+        if (typeof x == "string")
+            return x.replace(/\t/g, tabString);
+        return x;
+    });
+    var tabstops = [];
+    tokens.forEach(function (p, i) {
+        if (typeof p != "object")
+            return;
+        var id = p.tabstopId;
+        var ts = tabstops[id];
+        if (!ts) {
+            ts = tabstops[id] = [];
+            ts.index = id;
+            ts.value = "";
+            ts.parents = {};
+        }
+        if (ts.indexOf(p) !== -1)
+            return;
+        if (p.choices && !ts.choices)
+            ts.choices = p.choices;
+        ts.push(p);
+        var i1 = tokens.indexOf(p, i + 1);
+        if (i1 === -1)
+            return;
+        var value = tokens.slice(i + 1, i1);
+        var isNested = value.some(function (t) { return typeof t === "object"; });
+        if (isNested && !ts.value) {
+            ts.value = value;
+        }
+        else if (value.length && (!ts.value || typeof ts.value !== "string")) {
+            ts.value = value.join("");
+        }
+    });
+    tabstops.forEach(function (ts) { ts.length = 0; });
+    var expanding = {};
+    function copyValue(val) {
+        var copy = [];
+        for (var i = 0; i < val.length; i++) {
+            var p = val[i];
+            if (typeof p == "object") {
+                if (expanding[p.tabstopId])
+                    continue;
+                var j = val.lastIndexOf(p, i - 1);
+                p = copy[j] || { tabstopId: p.tabstopId };
+            }
+            copy[i] = p;
+        }
+        return copy;
+    }
+    for (var i = 0; i < tokens.length; i++) {
+        var p = tokens[i];
+        if (typeof p != "object")
+            continue;
+        var id = p.tabstopId;
+        var ts = tabstops[id];
+        var i1 = tokens.indexOf(p, i + 1);
+        if (expanding[id]) {
+            if (expanding[id] === p) {
+                delete expanding[id];
+                Object.keys(expanding).forEach(function (parentId) {
+                    ts.parents[parentId] = true;
+                });
+            }
+            continue;
+        }
+        expanding[id] = p;
+        var value = ts.value;
+        if (typeof value !== "string")
+            value = copyValue(value);
+        else if (p.fmt)
+            value = this.tmStrFormat(value, p, editor);
+        tokens.splice.apply(tokens, [i + 1, Math.max(0, i1 - i)].concat(value, p));
+        if (ts.indexOf(p) === -1)
+            ts.push(p);
+    }
+    var row = 0, column = 0;
+    var text = "";
+    tokens.forEach(function (t) {
+        if (typeof t === "string") {
+            var lines = t.split("\n");
+            if (lines.length > 1) {
+                column = lines[lines.length - 1].length;
+                row += lines.length - 1;
+            }
+            else
+                column += t.length;
+            text += t;
+        }
+        else if (t) {
+            if (!t.start)
+                t.start = { row: row, column: column };
+            else
+                t.end = { row: row, column: column };
+        }
+    });
+    return {
+        text: text,
+        tabstops: tabstops,
+        tokens: tokens
+    };
 };
-(function () {
-    this.attach = function (editor) {
+var TabstopManager = /** @class */ (function () {
+    function TabstopManager(editor) {
         this.index = 0;
         this.ranges = [];
         this.tabstops = [];
+        if (editor.tabstopManager)
+            return editor.tabstopManager;
+        editor.tabstopManager = this;
+        this.$onChange = this.onChange.bind(this);
+        this.$onChangeSelection = lang.delayedCall(this.onChangeSelection.bind(this)).schedule;
+        this.$onChangeSession = this.onChangeSession.bind(this);
+        this.$onAfterExec = this.onAfterExec.bind(this);
+        this.attach(editor);
+    }
+    TabstopManager.prototype.attach = function (editor) {
         this.$openTabstops = null;
         this.selectedTabstop = null;
         this.editor = editor;
+        this.session = editor.session;
         this.editor.on("change", this.$onChange);
         this.editor.on("changeSelection", this.$onChangeSelection);
         this.editor.on("changeSession", this.$onChangeSession);
         this.editor.commands.on("afterExec", this.$onAfterExec);
         this.editor.keyBinding.addKeyboardHandler(this.keyboardHandler);
     };
-    this.detach = function () {
+    TabstopManager.prototype.detach = function () {
         this.tabstops.forEach(this.removeTabstopMarkers, this);
-        this.ranges = null;
-        this.tabstops = null;
+        this.ranges.length = 0;
+        this.tabstops.length = 0;
         this.selectedTabstop = null;
-        this.editor.removeListener("change", this.$onChange);
-        this.editor.removeListener("changeSelection", this.$onChangeSelection);
-        this.editor.removeListener("changeSession", this.$onChangeSession);
-        this.editor.commands.removeListener("afterExec", this.$onAfterExec);
+        this.editor.off("change", this.$onChange);
+        this.editor.off("changeSelection", this.$onChangeSelection);
+        this.editor.off("changeSession", this.$onChangeSession);
+        this.editor.commands.off("afterExec", this.$onAfterExec);
         this.editor.keyBinding.removeKeyboardHandler(this.keyboardHandler);
         this.editor.tabstopManager = null;
+        this.session = null;
         this.editor = null;
     };
-    this.onChange = function (delta) {
+    TabstopManager.prototype.onChange = function (delta) {
         var isRemove = delta.action[0] == "r";
         var selectedTabstop = this.selectedTabstop || {};
         var parents = selectedTabstop.parents || {};
-        var tabstops = (this.tabstops || []).slice();
+        var tabstops = this.tabstops.slice();
         for (var i = 0; i < tabstops.length; i++) {
             var ts = tabstops[i];
             var active = ts == selectedTabstop || parents[ts.index];
@@ -4864,16 +5325,16 @@ var TabstopManager = function (editor) {
             }
             ts.rangeList.$onChange(delta);
         }
-        var session = this.editor.session;
+        var session = this.session;
         if (!this.$inChange && isRemove && session.getLength() == 1 && !session.getValue())
             this.detach();
     };
-    this.updateLinkedFields = function () {
+    TabstopManager.prototype.updateLinkedFields = function () {
         var ts = this.selectedTabstop;
         if (!ts || !ts.hasLinkedRanges || !ts.firstNonLinked)
             return;
         this.$inChange = true;
-        var session = this.editor.session;
+        var session = this.session;
         var text = session.getTextRange(ts.firstNonLinked);
         for (var i = 0; i < ts.length; i++) {
             var range = ts[i];
@@ -4885,11 +5346,11 @@ var TabstopManager = function (editor) {
         }
         this.$inChange = false;
     };
-    this.onAfterExec = function (e) {
+    TabstopManager.prototype.onAfterExec = function (e) {
         if (e.command && !e.command.readOnly)
             this.updateLinkedFields();
     };
-    this.onChangeSelection = function () {
+    TabstopManager.prototype.onChangeSelection = function () {
         if (!this.editor)
             return;
         var lead = this.editor.selection.lead;
@@ -4905,20 +5366,22 @@ var TabstopManager = function (editor) {
         }
         this.detach();
     };
-    this.onChangeSession = function () {
+    TabstopManager.prototype.onChangeSession = function () {
         this.detach();
     };
-    this.tabNext = function (dir) {
+    TabstopManager.prototype.tabNext = function (dir) {
         var max = this.tabstops.length;
         var index = this.index + (dir || 1);
         index = Math.min(Math.max(index, 1), max);
         if (index == max)
             index = 0;
         this.selectTabstop(index);
-        if (index === 0)
+        this.updateTabstopMarkers();
+        if (index === 0) {
             this.detach();
+        }
     };
-    this.selectTabstop = function (index) {
+    TabstopManager.prototype.selectTabstop = function (index) {
         this.$openTabstops = null;
         var ts = this.tabstops[this.index];
         if (ts)
@@ -4947,7 +5410,7 @@ var TabstopManager = function (editor) {
         if (this.selectedTabstop && this.selectedTabstop.choices)
             this.editor.execCommand("startAutocomplete", { matches: this.selectedTabstop.choices });
     };
-    this.addTabstops = function (tabstops, start, end) {
+    TabstopManager.prototype.addTabstops = function (tabstops, start, end) {
         var useLink = this.useLink || !this.editor.getOption("enableMultiselect");
         if (!this.$openTabstops)
             this.$openTabstops = [];
@@ -4961,8 +5424,10 @@ var TabstopManager = function (editor) {
         var i = this.index;
         var arg = [i + 1, 0];
         var ranges = this.ranges;
+        var snippetId = this.snippetId = (this.snippetId || 0) + 1;
         tabstops.forEach(function (ts, index) {
             var dest = this.$openTabstops[index] || ts;
+            dest.snippetId = snippetId;
             for (var i = 0; i < ts.length; i++) {
                 var p = ts[i];
                 var range = Range.fromPoints(p.start, p.end || p.start);
@@ -4999,21 +5464,35 @@ var TabstopManager = function (editor) {
             this.tabstops.splice.apply(this.tabstops, arg);
         }
     };
-    this.addTabstopMarkers = function (ts) {
-        var session = this.editor.session;
+    TabstopManager.prototype.addTabstopMarkers = function (ts) {
+        var session = this.session;
         ts.forEach(function (range) {
             if (!range.markerId)
                 range.markerId = session.addMarker(range, "ace_snippet-marker", "text");
         });
     };
-    this.removeTabstopMarkers = function (ts) {
-        var session = this.editor.session;
+    TabstopManager.prototype.removeTabstopMarkers = function (ts) {
+        var session = this.session;
         ts.forEach(function (range) {
             session.removeMarker(range.markerId);
             range.markerId = null;
         });
     };
-    this.removeRange = function (range) {
+    TabstopManager.prototype.updateTabstopMarkers = function () {
+        if (!this.selectedTabstop)
+            return;
+        var currentSnippetId = this.selectedTabstop.snippetId;
+        if (this.selectedTabstop.index === 0) {
+            currentSnippetId--;
+        }
+        this.tabstops.forEach(function (ts) {
+            if (ts.snippetId === currentSnippetId)
+                this.addTabstopMarkers(ts);
+            else
+                this.removeTabstopMarkers(ts);
+        }, this);
+    };
+    TabstopManager.prototype.removeRange = function (range) {
         var i = range.tabstop.indexOf(range);
         if (i != -1)
             range.tabstop.splice(i, 1);
@@ -5023,7 +5502,7 @@ var TabstopManager = function (editor) {
         i = range.tabstop.rangeList.ranges.indexOf(range);
         if (i != -1)
             range.tabstop.splice(i, 1);
-        this.editor.session.removeMarker(range.markerId);
+        this.session.removeMarker(range.markerId);
         if (!range.tabstop.length) {
             i = this.tabstops.indexOf(range.tabstop);
             if (i != -1)
@@ -5032,23 +5511,24 @@ var TabstopManager = function (editor) {
                 this.detach();
         }
     };
-    this.keyboardHandler = new HashHandler();
-    this.keyboardHandler.bindKeys({
-        "Tab": function (editor) {
-            if (exports.snippetManager && exports.snippetManager.expandWithTab(editor))
-                return;
-            editor.tabstopManager.tabNext(1);
-            editor.renderer.scrollCursorIntoView();
-        },
-        "Shift-Tab": function (editor) {
-            editor.tabstopManager.tabNext(-1);
-            editor.renderer.scrollCursorIntoView();
-        },
-        "Esc": function (editor) {
-            editor.tabstopManager.detach();
-        }
-    });
-}).call(TabstopManager.prototype);
+    return TabstopManager;
+}());
+TabstopManager.prototype.keyboardHandler = new HashHandler();
+TabstopManager.prototype.keyboardHandler.bindKeys({
+    "Tab": function (editor) {
+        if (exports.snippetManager && exports.snippetManager.expandWithTab(editor))
+            return;
+        editor.tabstopManager.tabNext(1);
+        editor.renderer.scrollCursorIntoView();
+    },
+    "Shift-Tab": function (editor) {
+        editor.tabstopManager.tabNext(-1);
+        editor.renderer.scrollCursorIntoView();
+    },
+    "Esc": function (editor) {
+        editor.tabstopManager.detach();
+    }
+});
 var movePoint = function (point, diff) {
     if (point.row == 0)
         point.column += diff.column;
@@ -5073,6 +5553,1038 @@ var Editor = require("./editor").Editor;
 
 });
 
+define("ace/autocomplete/inline_screenreader",["require","exports","module"], function(require, exports, module){"use strict";
+var AceInlineScreenReader = /** @class */ (function () {
+    function AceInlineScreenReader(editor) {
+        this.editor = editor;
+        this.screenReaderDiv = document.createElement("div");
+        this.screenReaderDiv.classList.add("ace_screenreader-only");
+        this.editor.container.appendChild(this.screenReaderDiv);
+    }
+    AceInlineScreenReader.prototype.setScreenReaderContent = function (content) {
+        if (!this.popup && this.editor.completer && /**@type{import("../autocomplete").Autocomplete}*/ (this.editor.completer).popup) {
+            this.popup = /**@type{import("../autocomplete").Autocomplete}*/ (this.editor.completer).popup;
+            this.popup.renderer.on("afterRender", function () {
+                var row = this.popup.getRow();
+                var t = this.popup.renderer.$textLayer;
+                var selected = t.element.childNodes[row - t.config.firstRow];
+                if (selected) {
+                    var idString = "doc-tooltip ";
+                    for (var lineIndex = 0; lineIndex < this._lines.length; lineIndex++) {
+                        idString += "ace-inline-screenreader-line-".concat(lineIndex, " ");
+                    }
+                    selected.setAttribute("aria-describedby", idString);
+                }
+            }.bind(this));
+        }
+        while (this.screenReaderDiv.firstChild) {
+            this.screenReaderDiv.removeChild(this.screenReaderDiv.firstChild);
+        }
+        this._lines = content.split(/\r\n|\r|\n/);
+        var codeElement = this.createCodeBlock();
+        this.screenReaderDiv.appendChild(codeElement);
+    };
+    AceInlineScreenReader.prototype.destroy = function () {
+        this.screenReaderDiv.remove();
+    };
+    AceInlineScreenReader.prototype.createCodeBlock = function () {
+        var container = document.createElement("pre");
+        container.setAttribute("id", "ace-inline-screenreader");
+        for (var lineIndex = 0; lineIndex < this._lines.length; lineIndex++) {
+            var codeElement = document.createElement("code");
+            codeElement.setAttribute("id", "ace-inline-screenreader-line-".concat(lineIndex));
+            var line = document.createTextNode(this._lines[lineIndex]);
+            codeElement.appendChild(line);
+            container.appendChild(codeElement);
+        }
+        return container;
+    };
+    return AceInlineScreenReader;
+}());
+exports.AceInlineScreenReader = AceInlineScreenReader;
+
+});
+
+define("ace/autocomplete/inline",["require","exports","module","ace/snippets","ace/autocomplete/inline_screenreader"], function(require, exports, module){"use strict";
+var snippetManager = require("../snippets").snippetManager;
+var AceInlineScreenReader = require("./inline_screenreader").AceInlineScreenReader;
+var AceInline = /** @class */ (function () {
+    function AceInline() {
+        this.editor = null;
+    }
+    AceInline.prototype.show = function (editor, completion, prefix) {
+        prefix = prefix || "";
+        if (editor && this.editor && this.editor !== editor) {
+            this.hide();
+            this.editor = null;
+            this.inlineScreenReader = null;
+        }
+        if (!editor || !completion) {
+            return false;
+        }
+        if (!this.inlineScreenReader) {
+            this.inlineScreenReader = new AceInlineScreenReader(editor);
+        }
+        var displayText = completion.snippet ? snippetManager.getDisplayTextForSnippet(editor, completion.snippet) : completion.value;
+        if (completion.hideInlinePreview || !displayText || !displayText.startsWith(prefix)) {
+            return false;
+        }
+        this.editor = editor;
+        this.inlineScreenReader.setScreenReaderContent(displayText);
+        displayText = displayText.slice(prefix.length);
+        if (displayText === "") {
+            editor.removeGhostText();
+        }
+        else {
+            editor.setGhostText(displayText);
+        }
+        return true;
+    };
+    AceInline.prototype.isOpen = function () {
+        if (!this.editor) {
+            return false;
+        }
+        return !!this.editor.renderer.$ghostText;
+    };
+    AceInline.prototype.hide = function () {
+        if (!this.editor) {
+            return false;
+        }
+        this.editor.removeGhostText();
+        return true;
+    };
+    AceInline.prototype.destroy = function () {
+        this.hide();
+        this.editor = null;
+        if (this.inlineScreenReader) {
+            this.inlineScreenReader.destroy();
+            this.inlineScreenReader = null;
+        }
+    };
+    return AceInline;
+}());
+exports.AceInline = AceInline;
+
+});
+
+define("ace/autocomplete/util",["require","exports","module"], function(require, exports, module){"use strict";
+exports.parForEach = function (array, fn, callback) {
+    var completed = 0;
+    var arLength = array.length;
+    if (arLength === 0)
+        callback();
+    for (var i = 0; i < arLength; i++) {
+        fn(array[i], function (result, err) {
+            completed++;
+            if (completed === arLength)
+                callback(result, err);
+        });
+    }
+};
+var ID_REGEX = /[a-zA-Z_0-9\$\-\u00A2-\u2000\u2070-\uFFFF]/;
+exports.retrievePrecedingIdentifier = function (text, pos, regex) {
+    regex = regex || ID_REGEX;
+    var buf = [];
+    for (var i = pos - 1; i >= 0; i--) {
+        if (regex.test(text[i]))
+            buf.push(text[i]);
+        else
+            break;
+    }
+    return buf.reverse().join("");
+};
+exports.retrieveFollowingIdentifier = function (text, pos, regex) {
+    regex = regex || ID_REGEX;
+    var buf = [];
+    for (var i = pos; i < text.length; i++) {
+        if (regex.test(text[i]))
+            buf.push(text[i]);
+        else
+            break;
+    }
+    return buf;
+};
+exports.getCompletionPrefix = function (editor) {
+    var pos = editor.getCursorPosition();
+    var line = editor.session.getLine(pos.row);
+    var prefix;
+    editor.completers.forEach(function (completer) {
+        if (completer.identifierRegexps) {
+            completer.identifierRegexps.forEach(function (identifierRegex) {
+                if (!prefix && identifierRegex)
+                    prefix = this.retrievePrecedingIdentifier(line, pos.column, identifierRegex);
+            }.bind(this));
+        }
+    }.bind(this));
+    return prefix || this.retrievePrecedingIdentifier(line, pos.column);
+};
+exports.triggerAutocomplete = function (editor, previousChar) {
+    var previousChar = previousChar == null
+        ? editor.session.getPrecedingCharacter()
+        : previousChar;
+    return editor.completers.some(function (completer) {
+        if (completer.triggerCharacters && Array.isArray(completer.triggerCharacters)) {
+            return completer.triggerCharacters.includes(previousChar);
+        }
+    });
+};
+
+});
+
+define("ace/autocomplete",["require","exports","module","ace/keyboard/hash_handler","ace/autocomplete/popup","ace/autocomplete/inline","ace/autocomplete/popup","ace/autocomplete/util","ace/lib/lang","ace/lib/dom","ace/snippets","ace/config","ace/lib/event","ace/lib/scroll"], function(require, exports, module){"use strict";
+var HashHandler = require("./keyboard/hash_handler").HashHandler;
+var AcePopup = require("./autocomplete/popup").AcePopup;
+var AceInline = require("./autocomplete/inline").AceInline;
+var getAriaId = require("./autocomplete/popup").getAriaId;
+var util = require("./autocomplete/util");
+var lang = require("./lib/lang");
+var dom = require("./lib/dom");
+var snippetManager = require("./snippets").snippetManager;
+var config = require("./config");
+var event = require("./lib/event");
+var preventParentScroll = require("./lib/scroll").preventParentScroll;
+var destroyCompleter = function (e, editor) {
+    editor.completer && editor.completer.destroy();
+};
+var Autocomplete = /** @class */ (function () {
+    function Autocomplete() {
+        this.autoInsert = false;
+        this.autoSelect = true;
+        this.autoShown = false;
+        this.exactMatch = false;
+        this.inlineEnabled = false;
+        this.keyboardHandler = new HashHandler();
+        this.keyboardHandler.bindKeys(this.commands);
+        this.parentNode = null;
+        this.setSelectOnHover = false;
+        this.hasSeen = new Set();
+        this.showLoadingState = false;
+        this.stickySelectionDelay = 500;
+        this.blurListener = this.blurListener.bind(this);
+        this.changeListener = this.changeListener.bind(this);
+        this.mousedownListener = this.mousedownListener.bind(this);
+        this.mousewheelListener = this.mousewheelListener.bind(this);
+        this.onLayoutChange = this.onLayoutChange.bind(this);
+        this.changeTimer = lang.delayedCall(function () {
+            this.updateCompletions(true);
+        }.bind(this));
+        this.tooltipTimer = lang.delayedCall(this.updateDocTooltip.bind(this), 50);
+        this.popupTimer = lang.delayedCall(this.$updatePopupPosition.bind(this), 50);
+        this.stickySelectionTimer = lang.delayedCall(function () {
+            this.stickySelection = true;
+        }.bind(this), this.stickySelectionDelay);
+        this.$firstOpenTimer = lang.delayedCall(/**@this{Autocomplete}*/ function () {
+            var initialPosition = this.completionProvider && this.completionProvider.initialPosition;
+            if (this.autoShown || (this.popup && this.popup.isOpen) || !initialPosition || this.editor.completers.length === 0)
+                return;
+            this.completions = new FilteredList(Autocomplete.completionsForLoading);
+            this.openPopup(this.editor, initialPosition.prefix, false);
+            this.popup.renderer.setStyle("ace_loading", true);
+        }.bind(this), this.stickySelectionDelay);
+    }
+    Object.defineProperty(Autocomplete, "completionsForLoading", {
+        get: function () {
+            return [{
+                    caption: config.nls("autocomplete.loading", "Loading..."),
+                    value: ""
+                }];
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Autocomplete.prototype.$init = function () {
+        this.popup = new AcePopup(this.parentNode || document.body || document.documentElement);
+        this.popup.on("click", function (e) {
+            this.insertMatch();
+            e.stop();
+        }.bind(this));
+        this.popup.focus = this.editor.focus.bind(this.editor);
+        this.popup.on("show", this.$onPopupShow.bind(this));
+        this.popup.on("hide", this.$onHidePopup.bind(this));
+        this.popup.on("select", this.$onPopupChange.bind(this));
+        event.addListener(this.popup.container, "mouseout", this.mouseOutListener.bind(this));
+        this.popup.on("changeHoverMarker", this.tooltipTimer.bind(null, null));
+        this.popup.renderer.on("afterRender", this.$onPopupRender.bind(this));
+        return this.popup;
+    };
+    Autocomplete.prototype.$initInline = function () {
+        if (!this.inlineEnabled || this.inlineRenderer)
+            return;
+        this.inlineRenderer = new AceInline();
+        return this.inlineRenderer;
+    };
+    Autocomplete.prototype.getPopup = function () {
+        return this.popup || this.$init();
+    };
+    Autocomplete.prototype.$onHidePopup = function () {
+        if (this.inlineRenderer) {
+            this.inlineRenderer.hide();
+        }
+        this.hideDocTooltip();
+        this.stickySelectionTimer.cancel();
+        this.popupTimer.cancel();
+        this.stickySelection = false;
+    };
+    Autocomplete.prototype.$seen = function (completion) {
+        if (!this.hasSeen.has(completion) && completion && completion.completer && completion.completer.onSeen && typeof completion.completer.onSeen === "function") {
+            completion.completer.onSeen(this.editor, completion);
+            this.hasSeen.add(completion);
+        }
+    };
+    Autocomplete.prototype.$onPopupChange = function (hide) {
+        if (this.inlineRenderer && this.inlineEnabled) {
+            var completion = hide ? null : this.popup.getData(this.popup.getRow());
+            this.$updateGhostText(completion);
+            if (this.popup.isMouseOver && this.setSelectOnHover) {
+                this.tooltipTimer.call(null, null);
+                return;
+            }
+            this.popupTimer.schedule();
+            this.tooltipTimer.schedule();
+        }
+        else {
+            this.popupTimer.call(null, null);
+            this.tooltipTimer.call(null, null);
+        }
+    };
+    Autocomplete.prototype.$updateGhostText = function (completion) {
+        var row = this.base.row;
+        var column = this.base.column;
+        var cursorColumn = this.editor.getCursorPosition().column;
+        var prefix = this.editor.session.getLine(row).slice(column, cursorColumn);
+        if (!this.inlineRenderer.show(this.editor, completion, prefix)) {
+            this.inlineRenderer.hide();
+        }
+        else {
+            this.$seen(completion);
+        }
+    };
+    Autocomplete.prototype.$onPopupRender = function () {
+        var inlineEnabled = this.inlineRenderer && this.inlineEnabled;
+        if (this.completions && this.completions.filtered && this.completions.filtered.length > 0) {
+            for (var i = this.popup.getFirstVisibleRow(); i <= this.popup.getLastVisibleRow(); i++) {
+                var completion = this.popup.getData(i);
+                if (completion && (!inlineEnabled || completion.hideInlinePreview)) {
+                    this.$seen(completion);
+                }
+            }
+        }
+    };
+    Autocomplete.prototype.$onPopupShow = function (hide) {
+        this.$onPopupChange(hide);
+        this.stickySelection = false;
+        if (this.stickySelectionDelay >= 0)
+            this.stickySelectionTimer.schedule(this.stickySelectionDelay);
+    };
+    Autocomplete.prototype.observeLayoutChanges = function () {
+        if (this.$elements || !this.editor)
+            return;
+        window.addEventListener("resize", this.onLayoutChange, { passive: true });
+        window.addEventListener("wheel", this.mousewheelListener);
+        var el = this.editor.container.parentNode;
+        var elements = [];
+        while (el) {
+            elements.push(el);
+            el.addEventListener("scroll", this.onLayoutChange, { passive: true });
+            el = el.parentNode;
+        }
+        this.$elements = elements;
+    };
+    Autocomplete.prototype.unObserveLayoutChanges = function () {
+        var _this = this;
+        window.removeEventListener("resize", this.onLayoutChange, { passive: true });
+        window.removeEventListener("wheel", this.mousewheelListener);
+        this.$elements && this.$elements.forEach(function (el) {
+            el.removeEventListener("scroll", _this.onLayoutChange, { passive: true });
+        });
+        this.$elements = null;
+    };
+    Autocomplete.prototype.onLayoutChange = function () {
+        if (!this.popup.isOpen)
+            return this.unObserveLayoutChanges();
+        this.$updatePopupPosition();
+        this.updateDocTooltip();
+    };
+    Autocomplete.prototype.$updatePopupPosition = function () {
+        var editor = this.editor;
+        var renderer = editor.renderer;
+        var lineHeight = renderer.layerConfig.lineHeight;
+        var pos = renderer.$cursorLayer.getPixelPosition(this.base, true);
+        pos.left -= this.popup.getTextLeftOffset();
+        var rect = editor.container.getBoundingClientRect();
+        pos.top += rect.top - renderer.layerConfig.offset;
+        pos.left += rect.left - editor.renderer.scrollLeft;
+        pos.left += renderer.gutterWidth;
+        var posGhostText = {
+            top: pos.top,
+            left: pos.left
+        };
+        if (renderer.$ghostText && renderer.$ghostTextWidget) {
+            if (this.base.row === renderer.$ghostText.position.row) {
+                posGhostText.top += renderer.$ghostTextWidget.el.offsetHeight;
+            }
+        }
+        var editorContainerBottom = editor.container.getBoundingClientRect().bottom - lineHeight;
+        var lowestPosition = editorContainerBottom < posGhostText.top ?
+            { top: editorContainerBottom, left: posGhostText.left } :
+            posGhostText;
+        if (this.popup.tryShow(lowestPosition, lineHeight, "bottom")) {
+            return;
+        }
+        if (this.popup.tryShow(pos, lineHeight, "top")) {
+            return;
+        }
+        this.popup.show(pos, lineHeight);
+    };
+    Autocomplete.prototype.openPopup = function (editor, prefix, keepPopupPosition) {
+        this.$firstOpenTimer.cancel();
+        if (!this.popup)
+            this.$init();
+        if (this.inlineEnabled && !this.inlineRenderer)
+            this.$initInline();
+        this.popup.autoSelect = this.autoSelect;
+        this.popup.setSelectOnHover(this.setSelectOnHover);
+        var oldRow = this.popup.getRow();
+        var previousSelectedItem = this.popup.data[oldRow];
+        this.popup.setData(this.completions.filtered, this.completions.filterText);
+        if (this.editor.textInput.setAriaOptions) {
+            this.editor.textInput.setAriaOptions({
+                activeDescendant: getAriaId(this.popup.getRow()),
+                inline: this.inlineEnabled
+            });
+        }
+        editor.keyBinding.addKeyboardHandler(this.keyboardHandler);
+        var newRow;
+        if (this.stickySelection)
+            newRow = this.popup.data.indexOf(previousSelectedItem);
+        if (!newRow || newRow === -1)
+            newRow = 0;
+        this.popup.setRow(this.autoSelect ? newRow : -1);
+        if (newRow === oldRow && previousSelectedItem !== this.completions.filtered[newRow])
+            this.$onPopupChange();
+        var inlineEnabled = this.inlineRenderer && this.inlineEnabled;
+        if (newRow === oldRow && inlineEnabled) {
+            var completion = this.popup.getData(this.popup.getRow());
+            this.$updateGhostText(completion);
+        }
+        if (!keepPopupPosition) {
+            this.popup.setTheme(editor.getTheme());
+            this.popup.setFontSize(editor.getFontSize());
+            this.$updatePopupPosition();
+            if (this.tooltipNode) {
+                this.updateDocTooltip();
+            }
+        }
+        this.changeTimer.cancel();
+        this.observeLayoutChanges();
+    };
+    Autocomplete.prototype.detach = function () {
+        if (this.editor) {
+            this.editor.keyBinding.removeKeyboardHandler(this.keyboardHandler);
+            this.editor.off("changeSelection", this.changeListener);
+            this.editor.off("blur", this.blurListener);
+            this.editor.off("mousedown", this.mousedownListener);
+            this.editor.off("mousewheel", this.mousewheelListener);
+        }
+        this.$firstOpenTimer.cancel();
+        this.changeTimer.cancel();
+        this.hideDocTooltip();
+        if (this.completionProvider) {
+            this.completionProvider.detach();
+        }
+        if (this.popup && this.popup.isOpen)
+            this.popup.hide();
+        if (this.popup && this.popup.renderer) {
+            this.popup.renderer.off("afterRender", this.$onPopupRender);
+        }
+        if (this.base)
+            this.base.detach();
+        this.activated = false;
+        this.completionProvider = this.completions = this.base = null;
+        this.unObserveLayoutChanges();
+    };
+    Autocomplete.prototype.changeListener = function (e) {
+        var cursor = this.editor.selection.lead;
+        if (cursor.row != this.base.row || cursor.column < this.base.column) {
+            this.detach();
+        }
+        if (this.activated)
+            this.changeTimer.schedule();
+        else
+            this.detach();
+    };
+    Autocomplete.prototype.blurListener = function (e) {
+        var el = document.activeElement;
+        var text = this.editor.textInput.getElement();
+        var fromTooltip = e.relatedTarget && this.tooltipNode && this.tooltipNode.contains(e.relatedTarget);
+        var container = this.popup && this.popup.container;
+        if (el != text && el.parentNode != container && !fromTooltip
+            && el != this.tooltipNode && e.relatedTarget != text) {
+            this.detach();
+        }
+    };
+    Autocomplete.prototype.mousedownListener = function (e) {
+        this.detach();
+    };
+    Autocomplete.prototype.mousewheelListener = function (e) {
+        if (this.popup && !this.popup.isMouseOver)
+            this.detach();
+    };
+    Autocomplete.prototype.mouseOutListener = function (e) {
+        if (this.popup.isOpen)
+            this.$updatePopupPosition();
+    };
+    Autocomplete.prototype.goTo = function (where) {
+        this.popup.goTo(where);
+    };
+    Autocomplete.prototype.insertMatch = function (data, options) {
+        if (!data)
+            data = this.popup.getData(this.popup.getRow());
+        if (!data)
+            return false;
+        if (data.value === "") // Explicitly given nothing to insert, e.g. "No suggestion state"
+            return this.detach();
+        var completions = this.completions;
+        var result = this.getCompletionProvider().insertMatch(this.editor, data, completions.filterText, options);
+        if (this.completions == completions)
+            this.detach();
+        return result;
+    };
+    Autocomplete.prototype.showPopup = function (editor, options) {
+        if (this.editor)
+            this.detach();
+        this.activated = true;
+        this.editor = editor;
+        if (editor.completer != this) {
+            if (editor.completer)
+                editor.completer.detach();
+            editor.completer = this;
+        }
+        editor.on("changeSelection", this.changeListener);
+        editor.on("blur", this.blurListener);
+        editor.on("mousedown", this.mousedownListener);
+        editor.on("mousewheel", this.mousewheelListener);
+        this.updateCompletions(false, options);
+    };
+    Autocomplete.prototype.getCompletionProvider = function (initialPosition) {
+        if (!this.completionProvider)
+            this.completionProvider = new CompletionProvider(initialPosition);
+        return this.completionProvider;
+    };
+    Autocomplete.prototype.gatherCompletions = function (editor, callback) {
+        return this.getCompletionProvider().gatherCompletions(editor, callback);
+    };
+    Autocomplete.prototype.updateCompletions = function (keepPopupPosition, options) {
+        if (keepPopupPosition && this.base && this.completions) {
+            var pos = this.editor.getCursorPosition();
+            var prefix = this.editor.session.getTextRange({ start: this.base, end: pos });
+            if (prefix == this.completions.filterText)
+                return;
+            this.completions.setFilter(prefix);
+            if (!this.completions.filtered.length)
+                return this.detach();
+            if (this.completions.filtered.length == 1
+                && this.completions.filtered[0].value == prefix
+                && !this.completions.filtered[0].snippet)
+                return this.detach();
+            this.openPopup(this.editor, prefix, keepPopupPosition);
+            return;
+        }
+        if (options && options.matches) {
+            var pos = this.editor.getSelectionRange().start;
+            this.base = this.editor.session.doc.createAnchor(pos.row, pos.column);
+            this.base.$insertRight = true;
+            this.completions = new FilteredList(options.matches);
+            this.getCompletionProvider().completions = this.completions;
+            return this.openPopup(this.editor, "", keepPopupPosition);
+        }
+        var session = this.editor.getSession();
+        var pos = this.editor.getCursorPosition();
+        var prefix = util.getCompletionPrefix(this.editor);
+        this.base = session.doc.createAnchor(pos.row, pos.column - prefix.length);
+        this.base.$insertRight = true;
+        var completionOptions = {
+            exactMatch: this.exactMatch,
+            ignoreCaption: this.ignoreCaption
+        };
+        this.getCompletionProvider({
+            prefix: prefix,
+            pos: pos
+        }).provideCompletions(this.editor, completionOptions, 
+        function (err, completions, finished) {
+            var filtered = completions.filtered;
+            var prefix = util.getCompletionPrefix(this.editor);
+            this.$firstOpenTimer.cancel();
+            if (finished) {
+                if (!filtered.length) {
+                    var emptyMessage = !this.autoShown && this.emptyMessage;
+                    if (typeof emptyMessage == "function")
+                        emptyMessage = this.emptyMessage(prefix);
+                    if (emptyMessage) {
+                        var completionsForEmpty = [{
+                                caption: emptyMessage,
+                                value: ""
+                            }
+                        ];
+                        this.completions = new FilteredList(completionsForEmpty);
+                        this.openPopup(this.editor, prefix, keepPopupPosition);
+                        this.popup.renderer.setStyle("ace_loading", false);
+                        this.popup.renderer.setStyle("ace_empty-message", true);
+                        return;
+                    }
+                    return this.detach();
+                }
+                if (filtered.length == 1 && filtered[0].value == prefix
+                    && !filtered[0].snippet)
+                    return this.detach();
+                if (this.autoInsert && !this.autoShown && filtered.length == 1)
+                    return this.insertMatch(filtered[0]);
+            }
+            this.completions = !finished && this.showLoadingState ?
+                new FilteredList(Autocomplete.completionsForLoading.concat(filtered), completions.filterText) :
+                completions;
+            this.openPopup(this.editor, prefix, keepPopupPosition);
+            this.popup.renderer.setStyle("ace_empty-message", false);
+            this.popup.renderer.setStyle("ace_loading", !finished);
+        }.bind(this));
+        if (this.showLoadingState && !this.autoShown && !(this.popup && this.popup.isOpen)) {
+            this.$firstOpenTimer.delay(this.stickySelectionDelay / 2);
+        }
+    };
+    Autocomplete.prototype.cancelContextMenu = function () {
+        this.editor.$mouseHandler.cancelContextMenu();
+    };
+    Autocomplete.prototype.updateDocTooltip = function () {
+        var popup = this.popup;
+        var all = this.completions.filtered;
+        var selected = all && (all[popup.getHoveredRow()] || all[popup.getRow()]);
+        var doc = null;
+        if (!selected || !this.editor || !this.popup.isOpen)
+            return this.hideDocTooltip();
+        var completersLength = this.editor.completers.length;
+        for (var i = 0; i < completersLength; i++) {
+            var completer = this.editor.completers[i];
+            if (completer.getDocTooltip && selected.completerId === completer.id) {
+                doc = completer.getDocTooltip(selected);
+                break;
+            }
+        }
+        if (!doc && typeof selected != "string")
+            doc = selected;
+        if (typeof doc == "string")
+            doc = { docText: doc };
+        if (!doc || !(doc.docHTML || doc.docText))
+            return this.hideDocTooltip();
+        this.showDocTooltip(doc);
+    };
+    Autocomplete.prototype.showDocTooltip = function (item) {
+        if (!this.tooltipNode) {
+            this.tooltipNode = dom.createElement("div");
+            this.tooltipNode.style.margin = "0";
+            this.tooltipNode.style.pointerEvents = "auto";
+            this.tooltipNode.style.overscrollBehavior = "contain";
+            this.tooltipNode.tabIndex = -1;
+            this.tooltipNode.onblur = this.blurListener.bind(this);
+            this.tooltipNode.onclick = this.onTooltipClick.bind(this);
+            this.tooltipNode.id = "doc-tooltip";
+            this.tooltipNode.setAttribute("role", "tooltip");
+            this.tooltipNode.addEventListener("wheel", preventParentScroll);
+        }
+        var theme = this.editor.renderer.theme;
+        this.tooltipNode.className = "ace_tooltip ace_doc-tooltip " +
+            (theme.isDark ? "ace_dark " : "") + (theme.cssClass || "");
+        var tooltipNode = this.tooltipNode;
+        if (item.docHTML) {
+            tooltipNode.innerHTML = item.docHTML;
+        }
+        else if (item.docText) {
+            tooltipNode.textContent = item.docText;
+        }
+        if (!tooltipNode.parentNode)
+            this.popup.container.appendChild(this.tooltipNode);
+        var popup = this.popup;
+        var rect = popup.container.getBoundingClientRect();
+        tooltipNode.style.top = popup.container.style.top;
+        tooltipNode.style.bottom = popup.container.style.bottom;
+        tooltipNode.style.display = "block";
+        if (window.innerWidth - rect.right < 320) {
+            if (rect.left < 320) {
+                if (popup.isTopdown) {
+                    tooltipNode.style.top = rect.bottom + "px";
+                    tooltipNode.style.left = rect.left + "px";
+                    tooltipNode.style.right = "";
+                    tooltipNode.style.bottom = "";
+                }
+                else {
+                    tooltipNode.style.top = popup.container.offsetTop - tooltipNode.offsetHeight + "px";
+                    tooltipNode.style.left = rect.left + "px";
+                    tooltipNode.style.right = "";
+                    tooltipNode.style.bottom = "";
+                }
+            }
+            else {
+                tooltipNode.style.right = window.innerWidth - rect.left + "px";
+                tooltipNode.style.left = "";
+            }
+        }
+        else {
+            tooltipNode.style.left = (rect.right + 1) + "px";
+            tooltipNode.style.right = "";
+        }
+    };
+    Autocomplete.prototype.hideDocTooltip = function () {
+        this.tooltipTimer.cancel();
+        if (!this.tooltipNode)
+            return;
+        var el = this.tooltipNode;
+        if (!this.editor.isFocused() && document.activeElement == el)
+            this.editor.focus();
+        this.tooltipNode = null;
+        if (el.parentNode)
+            el.parentNode.removeChild(el);
+    };
+    Autocomplete.prototype.onTooltipClick = function (e) {
+        var a = e.target;
+        while (a && a != this.tooltipNode) {
+            if (a.nodeName == "A" && a.href) {
+                a.rel = "noreferrer";
+                a.target = "_blank";
+                break;
+            }
+            a = a.parentNode;
+        }
+    };
+    Autocomplete.prototype.destroy = function () {
+        this.detach();
+        if (this.popup) {
+            this.popup.destroy();
+            var el = this.popup.container;
+            if (el && el.parentNode)
+                el.parentNode.removeChild(el);
+        }
+        if (this.editor && this.editor.completer == this) {
+            this.editor.off("destroy", destroyCompleter);
+            this.editor.completer = null;
+        }
+        this.inlineRenderer = this.popup = this.editor = null;
+    };
+    return Autocomplete;
+}());
+Autocomplete.prototype.commands = {
+    "Up": function (editor) { editor.completer.goTo("up"); },
+    "Down": function (editor) { editor.completer.goTo("down"); },
+    "Ctrl-Up|Ctrl-Home": function (editor) { editor.completer.goTo("start"); },
+    "Ctrl-Down|Ctrl-End": function (editor) { editor.completer.goTo("end"); },
+    "Esc": function (editor) { editor.completer.detach(); },
+    "Return": function (editor) { return editor.completer.insertMatch(); },
+    "Shift-Return": function (editor) { editor.completer.insertMatch(null, { deleteSuffix: true }); },
+    "Tab": function (editor) {
+        var result = editor.completer.insertMatch();
+        if (!result && !editor.tabstopManager)
+            editor.completer.goTo("down");
+        else
+            return result;
+    },
+    "Backspace": function (editor) {
+        editor.execCommand("backspace");
+        var prefix = util.getCompletionPrefix(editor);
+        if (!prefix && editor.completer)
+            editor.completer.detach();
+    },
+    "PageUp": function (editor) { editor.completer.popup.gotoPageUp(); },
+    "PageDown": function (editor) { editor.completer.popup.gotoPageDown(); }
+};
+Autocomplete.for = function (editor) {
+    if (editor.completer instanceof Autocomplete) {
+        return editor.completer;
+    }
+    if (editor.completer) {
+        editor.completer.destroy();
+        editor.completer = null;
+    }
+    if (config.get("sharedPopups")) {
+        if (!Autocomplete["$sharedInstance"])
+            Autocomplete["$sharedInstance"] = new Autocomplete();
+        editor.completer = Autocomplete["$sharedInstance"];
+    }
+    else {
+        editor.completer = new Autocomplete();
+        editor.once("destroy", destroyCompleter);
+    }
+    return editor.completer;
+};
+Autocomplete.startCommand = {
+    name: "startAutocomplete",
+    exec: function (editor, options) {
+        var completer = Autocomplete.for(editor);
+        completer.autoInsert = false;
+        completer.autoSelect = true;
+        completer.autoShown = false;
+        completer.showPopup(editor, options);
+        completer.cancelContextMenu();
+    },
+    bindKey: "Ctrl-Space|Ctrl-Shift-Space|Alt-Space"
+};
+var CompletionProvider = /** @class */ (function () {
+    function CompletionProvider(initialPosition) {
+        this.initialPosition = initialPosition;
+        this.active = true;
+    }
+    CompletionProvider.prototype.insertByIndex = function (editor, index, options) {
+        if (!this.completions || !this.completions.filtered) {
+            return false;
+        }
+        return this.insertMatch(editor, this.completions.filtered[index], options);
+    };
+    CompletionProvider.prototype.insertMatch = function (editor, data, options) {
+        if (!data)
+            return false;
+        editor.startOperation({ command: { name: "insertMatch" } });
+        if (data.completer && data.completer.insertMatch) {
+            data.completer.insertMatch(editor, data);
+        }
+        else {
+            if (!this.completions)
+                return false;
+            var replaceBefore = this.completions.filterText.length;
+            var replaceAfter = 0;
+            if (data.range && data.range.start.row === data.range.end.row) {
+                replaceBefore -= this.initialPosition.prefix.length;
+                replaceBefore += this.initialPosition.pos.column - data.range.start.column;
+                replaceAfter += data.range.end.column - this.initialPosition.pos.column;
+            }
+            if (replaceBefore || replaceAfter) {
+                var ranges;
+                if (editor.selection.getAllRanges) {
+                    ranges = editor.selection.getAllRanges();
+                }
+                else {
+                    ranges = [editor.getSelectionRange()];
+                }
+                for (var i = 0, range; range = ranges[i]; i++) {
+                    range.start.column -= replaceBefore;
+                    range.end.column += replaceAfter;
+                    editor.session.remove(range);
+                }
+            }
+            if (data.snippet) {
+                snippetManager.insertSnippet(editor, data.snippet);
+            }
+            else {
+                this.$insertString(editor, data);
+            }
+            if (data.completer && data.completer.onInsert && typeof data.completer.onInsert == "function") {
+                data.completer.onInsert(editor, data);
+            }
+            if (data.command && data.command === "startAutocomplete") {
+                editor.execCommand(data.command);
+            }
+        }
+        editor.endOperation();
+        return true;
+    };
+    CompletionProvider.prototype.$insertString = function (editor, data) {
+        var text = data.value || data;
+        editor.execCommand("insertstring", text);
+    };
+    CompletionProvider.prototype.gatherCompletions = function (editor, callback) {
+        var session = editor.getSession();
+        var pos = editor.getCursorPosition();
+        var prefix = util.getCompletionPrefix(editor);
+        var matches = [];
+        this.completers = editor.completers;
+        var total = editor.completers.length;
+        editor.completers.forEach(function (completer, i) {
+            completer.getCompletions(editor, session, pos, prefix, function (err, results) {
+                if (completer.hideInlinePreview)
+                    results = results.map(function (result) {
+                        return Object.assign(result, { hideInlinePreview: completer.hideInlinePreview });
+                    });
+                if (!err && results)
+                    matches = matches.concat(results);
+                callback(null, {
+                    prefix: util.getCompletionPrefix(editor),
+                    matches: matches,
+                    finished: (--total === 0)
+                });
+            });
+        });
+        return true;
+    };
+    CompletionProvider.prototype.provideCompletions = function (editor, options, callback) {
+        var processResults = function (results) {
+            var prefix = results.prefix;
+            var matches = results.matches;
+            this.completions = new FilteredList(matches);
+            if (options.exactMatch)
+                this.completions.exactMatch = true;
+            if (options.ignoreCaption)
+                this.completions.ignoreCaption = true;
+            this.completions.setFilter(prefix);
+            if (results.finished || this.completions.filtered.length)
+                callback(null, this.completions, results.finished);
+        }.bind(this);
+        var isImmediate = true;
+        var immediateResults = null;
+        this.gatherCompletions(editor, function (err, results) {
+            if (!this.active) {
+                return;
+            }
+            if (err) {
+                callback(err, [], true);
+                this.detach();
+            }
+            var prefix = results.prefix;
+            if (prefix.indexOf(results.prefix) !== 0)
+                return;
+            if (isImmediate) {
+                immediateResults = results;
+                return;
+            }
+            processResults(results);
+        }.bind(this));
+        isImmediate = false;
+        if (immediateResults) {
+            var results = immediateResults;
+            immediateResults = null;
+            processResults(results);
+        }
+    };
+    CompletionProvider.prototype.detach = function () {
+        this.active = false;
+        this.completers && this.completers.forEach(function (completer) {
+            if (typeof completer.cancel === "function") {
+                completer.cancel();
+            }
+        });
+    };
+    return CompletionProvider;
+}());
+var FilteredList = /** @class */ (function () {
+    function FilteredList(array, filterText) {
+        this.all = array;
+        this.filtered = array;
+        this.filterText = filterText || "";
+        this.exactMatch = false;
+        this.ignoreCaption = false;
+    }
+    FilteredList.prototype.setFilter = function (str) {
+        if (str.length > this.filterText && str.lastIndexOf(this.filterText, 0) === 0)
+            var matches = this.filtered;
+        else
+            var matches = this.all;
+        this.filterText = str;
+        matches = this.filterCompletions(matches, this.filterText);
+        matches = matches.sort(function (a, b) {
+            return b.exactMatch - a.exactMatch || b.$score - a.$score
+                || (a.caption || a.value).localeCompare(b.caption || b.value);
+        });
+        var prev = null;
+        matches = matches.filter(function (item) {
+            var caption = item.snippet || item.caption || item.value;
+            if (caption === prev)
+                return false;
+            prev = caption;
+            return true;
+        });
+        this.filtered = matches;
+    };
+    FilteredList.prototype.filterCompletions = function (items, needle) {
+        var results = [];
+        var upper = needle.toUpperCase();
+        var lower = needle.toLowerCase();
+        loop: for (var i = 0, item; item = items[i]; i++) {
+            var caption = (!this.ignoreCaption && item.caption) || item.value || item.snippet;
+            if (!caption)
+                continue;
+            var lastIndex = -1;
+            var matchMask = 0;
+            var penalty = 0;
+            var index, distance;
+            if (this.exactMatch) {
+                if (needle !== caption.substr(0, needle.length))
+                    continue loop;
+            }
+            else {
+                var fullMatchIndex = caption.toLowerCase().indexOf(lower);
+                if (fullMatchIndex > -1) {
+                    penalty = fullMatchIndex;
+                }
+                else {
+                    for (var j = 0; j < needle.length; j++) {
+                        var i1 = caption.indexOf(lower[j], lastIndex + 1);
+                        var i2 = caption.indexOf(upper[j], lastIndex + 1);
+                        index = (i1 >= 0) ? ((i2 < 0 || i1 < i2) ? i1 : i2) : i2;
+                        if (index < 0)
+                            continue loop;
+                        distance = index - lastIndex - 1;
+                        if (distance > 0) {
+                            if (lastIndex === -1)
+                                penalty += 10;
+                            penalty += distance;
+                            matchMask = matchMask | (1 << j);
+                        }
+                        lastIndex = index;
+                    }
+                }
+            }
+            item.matchMask = matchMask;
+            item.exactMatch = penalty ? 0 : 1;
+            item.$score = (item.score || 0) - penalty;
+            results.push(item);
+        }
+        return results;
+    };
+    return FilteredList;
+}());
+exports.Autocomplete = Autocomplete;
+exports.CompletionProvider = CompletionProvider;
+exports.FilteredList = FilteredList;
+
+});
+
+define("ace/ext/statusbar",["require","exports","module","ace/lib/dom","ace/lib/lang"], function(require, exports, module){"use strict";
+var dom = require("../lib/dom");
+var lang = require("../lib/lang");
+var StatusBar = /** @class */ (function () {
+    function StatusBar(editor, parentNode) {
+        this.element = dom.createElement("div");
+        this.element.className = "ace_status-indicator";
+        this.element.style.cssText = "display: inline-block;";
+        parentNode.appendChild(this.element);
+        var statusUpdate = lang.delayedCall(function () {
+            this.updateStatus(editor);
+        }.bind(this)).schedule.bind(null, 100);
+        editor.on("changeStatus", statusUpdate);
+        editor.on("changeSelection", statusUpdate);
+        editor.on("keyboardActivity", statusUpdate);
+    }
+    StatusBar.prototype.updateStatus = function (editor) {
+        var status = [];
+        function add(str, separator) {
+            str && status.push(str, separator || "|");
+        }
+        add(editor.keyBinding.getStatusText(editor));
+        if (editor.commands.recording)
+            add("REC");
+        var sel = editor.selection;
+        var c = sel.lead;
+        if (!sel.isEmpty()) {
+            var r = editor.getSelectionRange();
+            add("(" + (r.end.row - r.start.row) + ":" + (r.end.column - r.start.column) + ")", " ");
+        }
+        add(c.row + ":" + c.column, " ");
+        if (sel.rangeCount)
+            add("[" + sel.rangeCount + "]", " ");
+        status.pop();
+        this.element.textContent = status.join("");
+    };
+    return StatusBar;
+}());
+exports.StatusBar = StatusBar;
+
+});
+
 define("ace/ext/emmet",["require","exports","module","ace/keyboard/hash_handler","ace/editor","ace/snippets","ace/range","ace/config","resources","resources","tabStops","resources","utils","actions"], function(require, exports, module){"use strict";
 var HashHandler = require("../keyboard/hash_handler").HashHandler;
 var Editor = require("../editor").Editor;
@@ -5080,34 +6592,35 @@ var snippetManager = require("../snippets").snippetManager;
 var Range = require("../range").Range;
 var config = require("../config");
 var emmet, emmetPath;
-function AceEmmetEditor() { }
-AceEmmetEditor.prototype = {
-    setupContext: function (editor) {
+var AceEmmetEditor = /** @class */ (function () {
+    function AceEmmetEditor() {
+    }
+    AceEmmetEditor.prototype.setupContext = function (editor) {
         this.ace = editor;
         this.indentation = editor.session.getTabString();
         if (!emmet)
-            emmet = window.emmet;
+            emmet = window["emmet"];
         var resources = emmet.resources || emmet.require("resources");
         resources.setVariable("indentation", this.indentation);
         this.$syntax = null;
         this.$syntax = this.getSyntax();
-    },
-    getSelectionRange: function () {
+    };
+    AceEmmetEditor.prototype.getSelectionRange = function () {
         var range = this.ace.getSelectionRange();
         var doc = this.ace.session.doc;
         return {
             start: doc.positionToIndex(range.start),
             end: doc.positionToIndex(range.end)
         };
-    },
-    createSelection: function (start, end) {
+    };
+    AceEmmetEditor.prototype.createSelection = function (start, end) {
         var doc = this.ace.session.doc;
         this.ace.selection.setRange({
             start: doc.indexToPosition(start),
             end: doc.indexToPosition(end)
         });
-    },
-    getCurrentLineRange: function () {
+    };
+    AceEmmetEditor.prototype.getCurrentLineRange = function () {
         var ace = this.ace;
         var row = ace.getCursorPosition().row;
         var lineLength = ace.session.getLine(row).length;
@@ -5116,20 +6629,20 @@ AceEmmetEditor.prototype = {
             start: index,
             end: index + lineLength
         };
-    },
-    getCaretPos: function () {
+    };
+    AceEmmetEditor.prototype.getCaretPos = function () {
         var pos = this.ace.getCursorPosition();
         return this.ace.session.doc.positionToIndex(pos);
-    },
-    setCaretPos: function (index) {
+    };
+    AceEmmetEditor.prototype.setCaretPos = function (index) {
         var pos = this.ace.session.doc.indexToPosition(index);
         this.ace.selection.moveToPosition(pos);
-    },
-    getCurrentLine: function () {
+    };
+    AceEmmetEditor.prototype.getCurrentLine = function () {
         var row = this.ace.getCursorPosition().row;
         return this.ace.session.getLine(row);
-    },
-    replaceContent: function (value, start, end, noIndent) {
+    };
+    AceEmmetEditor.prototype.replaceContent = function (value, start, end, noIndent) {
         if (end == null)
             end = start == null ? this.getContent().length : start;
         if (start == null)
@@ -5141,11 +6654,11 @@ AceEmmetEditor.prototype = {
         range.end = range.start;
         value = this.$updateTabstops(value);
         snippetManager.insertSnippet(editor, value);
-    },
-    getContent: function () {
+    };
+    AceEmmetEditor.prototype.getContent = function () {
         return this.ace.getValue();
-    },
-    getSyntax: function () {
+    };
+    AceEmmetEditor.prototype.getSyntax = function () {
         if (this.$syntax)
             return this.$syntax;
         var syntax = this.ace.session.$modeId.split("/").pop();
@@ -5163,8 +6676,8 @@ AceEmmetEditor.prototype = {
             }
         }
         return syntax;
-    },
-    getProfileName: function () {
+    };
+    AceEmmetEditor.prototype.getProfileName = function () {
         var resources = emmet.resources || emmet.require("resources");
         switch (this.getSyntax()) {
             case "css": return "css";
@@ -5180,17 +6693,17 @@ AceEmmetEditor.prototype = {
                 var mode = this.ace.session.$mode;
                 return mode.emmetConfig && mode.emmetConfig.profile || "xhtml";
         }
-    },
-    prompt: function (title) {
+    };
+    AceEmmetEditor.prototype.prompt = function (title) {
         return prompt(title); // eslint-disable-line no-alert
-    },
-    getSelection: function () {
+    };
+    AceEmmetEditor.prototype.getSelection = function () {
         return this.ace.session.getTextRange();
-    },
-    getFilePath: function () {
+    };
+    AceEmmetEditor.prototype.getFilePath = function () {
         return "";
-    },
-    $updateTabstops: function (value) {
+    };
+    AceEmmetEditor.prototype.$updateTabstops = function (value) {
         var base = 1000;
         var zeroBase = 0;
         var lastZero = null;
@@ -5232,8 +6745,9 @@ AceEmmetEditor.prototype = {
             value = common.replaceSubstring(value, '${0}', lastZero[0], lastZero[1]);
         }
         return value;
-    }
-};
+    };
+    return AceEmmetEditor;
+}());
 var keymap = {
     expand_abbreviation: { "mac": "ctrl+alt+e", "win": "alt+e" },
     match_pair_outward: { "mac": "ctrl+d", "win": "ctrl+," },
@@ -5373,820 +6887,13 @@ exports.setCore = function (e) {
 
 });
 
-define("ace/autocomplete/popup",["require","exports","module","ace/virtual_renderer","ace/editor","ace/range","ace/lib/event","ace/lib/lang","ace/lib/dom"], function(require, exports, module){"use strict";
-var Renderer = require("../virtual_renderer").VirtualRenderer;
-var Editor = require("../editor").Editor;
-var Range = require("../range").Range;
-var event = require("../lib/event");
-var lang = require("../lib/lang");
-var dom = require("../lib/dom");
-var getAriaId = function (index) {
-    return "suggest-aria-id:".concat(index);
-};
-var $singleLineEditor = function (el) {
-    var renderer = new Renderer(el);
-    renderer.$maxLines = 4;
-    var editor = new Editor(renderer);
-    editor.setHighlightActiveLine(false);
-    editor.setShowPrintMargin(false);
-    editor.renderer.setShowGutter(false);
-    editor.renderer.setHighlightGutterLine(false);
-    editor.$mouseHandler.$focusTimeout = 0;
-    editor.$highlightTagPending = true;
-    return editor;
-};
-var AcePopup = function (parentNode) {
-    var el = dom.createElement("div");
-    var popup = new $singleLineEditor(el);
-    if (parentNode)
-        parentNode.appendChild(el);
-    el.style.display = "none";
-    popup.renderer.content.style.cursor = "default";
-    popup.renderer.setStyle("ace_autocomplete");
-    popup.renderer.container.setAttribute("role", "listbox");
-    popup.renderer.container.setAttribute("aria-label", "Autocomplete suggestions");
-    popup.setOption("displayIndentGuides", false);
-    popup.setOption("dragDelay", 150);
-    var noop = function () { };
-    popup.focus = noop;
-    popup.$isFocused = true;
-    popup.renderer.$cursorLayer.restartTimer = noop;
-    popup.renderer.$cursorLayer.element.style.opacity = 0;
-    popup.renderer.$maxLines = 8;
-    popup.renderer.$keepTextAreaAtCursor = false;
-    popup.setHighlightActiveLine(false);
-    popup.session.highlight("");
-    popup.session.$searchHighlight.clazz = "ace_highlight-marker";
-    popup.on("mousedown", function (e) {
-        var pos = e.getDocumentPosition();
-        popup.selection.moveToPosition(pos);
-        selectionMarker.start.row = selectionMarker.end.row = pos.row;
-        e.stop();
-    });
-    var lastMouseEvent;
-    var hoverMarker = new Range(-1, 0, -1, Infinity);
-    var selectionMarker = new Range(-1, 0, -1, Infinity);
-    selectionMarker.id = popup.session.addMarker(selectionMarker, "ace_active-line", "fullLine");
-    popup.setSelectOnHover = function (val) {
-        if (!val) {
-            hoverMarker.id = popup.session.addMarker(hoverMarker, "ace_line-hover", "fullLine");
-        }
-        else if (hoverMarker.id) {
-            popup.session.removeMarker(hoverMarker.id);
-            hoverMarker.id = null;
-        }
-    };
-    popup.setSelectOnHover(false);
-    popup.on("mousemove", function (e) {
-        if (!lastMouseEvent) {
-            lastMouseEvent = e;
-            return;
-        }
-        if (lastMouseEvent.x == e.x && lastMouseEvent.y == e.y) {
-            return;
-        }
-        lastMouseEvent = e;
-        lastMouseEvent.scrollTop = popup.renderer.scrollTop;
-        var row = lastMouseEvent.getDocumentPosition().row;
-        if (hoverMarker.start.row != row) {
-            if (!hoverMarker.id)
-                popup.setRow(row);
-            setHoverMarker(row);
-        }
-    });
-    popup.renderer.on("beforeRender", function () {
-        if (lastMouseEvent && hoverMarker.start.row != -1) {
-            lastMouseEvent.$pos = null;
-            var row = lastMouseEvent.getDocumentPosition().row;
-            if (!hoverMarker.id)
-                popup.setRow(row);
-            setHoverMarker(row, true);
-        }
-    });
-    popup.renderer.on("afterRender", function () {
-        var row = popup.getRow();
-        var t = popup.renderer.$textLayer;
-        var selected = t.element.childNodes[row - t.config.firstRow];
-        var el = document.activeElement; // Active element is textarea of main editor
-        if (selected !== t.selectedNode && t.selectedNode) {
-            dom.removeCssClass(t.selectedNode, "ace_selected");
-            el.removeAttribute("aria-activedescendant");
-            t.selectedNode.removeAttribute("id");
-        }
-        t.selectedNode = selected;
-        if (selected) {
-            dom.addCssClass(selected, "ace_selected");
-            var ariaId = getAriaId(row);
-            selected.id = ariaId;
-            popup.renderer.container.setAttribute("aria-activedescendant", ariaId);
-            el.setAttribute("aria-activedescendant", ariaId);
-            selected.setAttribute("aria-label", popup.getData(row).value);
-        }
-    });
-    var hideHoverMarker = function () { setHoverMarker(-1); };
-    var setHoverMarker = function (row, suppressRedraw) {
-        if (row !== hoverMarker.start.row) {
-            hoverMarker.start.row = hoverMarker.end.row = row;
-            if (!suppressRedraw)
-                popup.session._emit("changeBackMarker");
-            popup._emit("changeHoverMarker");
-        }
-    };
-    popup.getHoveredRow = function () {
-        return hoverMarker.start.row;
-    };
-    event.addListener(popup.container, "mouseout", hideHoverMarker);
-    popup.on("hide", hideHoverMarker);
-    popup.on("changeSelection", hideHoverMarker);
-    popup.session.doc.getLength = function () {
-        return popup.data.length;
-    };
-    popup.session.doc.getLine = function (i) {
-        var data = popup.data[i];
-        if (typeof data == "string")
-            return data;
-        return (data && data.value) || "";
-    };
-    var bgTokenizer = popup.session.bgTokenizer;
-    bgTokenizer.$tokenizeRow = function (row) {
-        var data = popup.data[row];
-        var tokens = [];
-        if (!data)
-            return tokens;
-        if (typeof data == "string")
-            data = { value: data };
-        var caption = data.caption || data.value || data.name;
-        function addToken(value, className) {
-            value && tokens.push({
-                type: (data.className || "") + (className || ""),
-                value: value
-            });
-        }
-        var lower = caption.toLowerCase();
-        var filterText = (popup.filterText || "").toLowerCase();
-        var lastIndex = 0;
-        var lastI = 0;
-        for (var i = 0; i <= filterText.length; i++) {
-            if (i != lastI && (data.matchMask & (1 << i) || i == filterText.length)) {
-                var sub = filterText.slice(lastI, i);
-                lastI = i;
-                var index = lower.indexOf(sub, lastIndex);
-                if (index == -1)
-                    continue;
-                addToken(caption.slice(lastIndex, index), "");
-                lastIndex = index + sub.length;
-                addToken(caption.slice(index, lastIndex), "completion-highlight");
-            }
-        }
-        addToken(caption.slice(lastIndex, caption.length), "");
-        if (data.meta)
-            tokens.push({ type: "completion-meta", value: data.meta });
-        if (data.message)
-            tokens.push({ type: "completion-message", value: data.message });
-        return tokens;
-    };
-    bgTokenizer.$updateOnChange = noop;
-    bgTokenizer.start = noop;
-    popup.session.$computeWidth = function () {
-        return this.screenWidth = 0;
-    };
-    popup.isOpen = false;
-    popup.isTopdown = false;
-    popup.autoSelect = true;
-    popup.filterText = "";
-    popup.data = [];
-    popup.setData = function (list, filterText) {
-        popup.filterText = filterText || "";
-        popup.setValue(lang.stringRepeat("\n", list.length), -1);
-        popup.data = list || [];
-        popup.setRow(0);
-    };
-    popup.getData = function (row) {
-        return popup.data[row];
-    };
-    popup.getRow = function () {
-        return selectionMarker.start.row;
-    };
-    popup.setRow = function (line) {
-        line = Math.max(this.autoSelect ? 0 : -1, Math.min(this.data.length, line));
-        if (selectionMarker.start.row != line) {
-            popup.selection.clearSelection();
-            selectionMarker.start.row = selectionMarker.end.row = line || 0;
-            popup.session._emit("changeBackMarker");
-            popup.moveCursorTo(line || 0, 0);
-            if (popup.isOpen)
-                popup._signal("select");
-        }
-    };
-    popup.on("changeSelection", function () {
-        if (popup.isOpen)
-            popup.setRow(popup.selection.lead.row);
-        popup.renderer.scrollCursorIntoView();
-    });
-    popup.hide = function () {
-        this.container.style.display = "none";
-        this._signal("hide");
-        popup.isOpen = false;
-    };
-    popup.show = function (pos, lineHeight, topdownOnly) {
-        var el = this.container;
-        var screenHeight = window.innerHeight;
-        var screenWidth = window.innerWidth;
-        var renderer = this.renderer;
-        var maxH = renderer.$maxLines * lineHeight * 1.4;
-        var top = pos.top + this.$borderSize;
-        var allowTopdown = top > screenHeight / 2 && !topdownOnly;
-        if (allowTopdown && top + lineHeight + maxH > screenHeight) {
-            renderer.$maxPixelHeight = top - 2 * this.$borderSize;
-            el.style.top = "";
-            el.style.bottom = screenHeight - top + "px";
-            popup.isTopdown = false;
-        }
-        else {
-            top += lineHeight;
-            renderer.$maxPixelHeight = screenHeight - top - 0.2 * lineHeight;
-            el.style.top = top + "px";
-            el.style.bottom = "";
-            popup.isTopdown = true;
-        }
-        el.style.display = "";
-        var left = pos.left;
-        if (left + el.offsetWidth > screenWidth)
-            left = screenWidth - el.offsetWidth;
-        el.style.left = left + "px";
-        this._signal("show");
-        lastMouseEvent = null;
-        popup.isOpen = true;
-    };
-    popup.goTo = function (where) {
-        var row = this.getRow();
-        var max = this.session.getLength() - 1;
-        switch (where) {
-            case "up":
-                row = row <= 0 ? max : row - 1;
-                break;
-            case "down":
-                row = row >= max ? -1 : row + 1;
-                break;
-            case "start":
-                row = 0;
-                break;
-            case "end":
-                row = max;
-                break;
-        }
-        this.setRow(row);
-    };
-    popup.getTextLeftOffset = function () {
-        return this.$borderSize + this.renderer.$padding + this.$imageSize;
-    };
-    popup.$imageSize = 0;
-    popup.$borderSize = 1;
-    return popup;
-};
-dom.importCssString("\n.ace_editor.ace_autocomplete .ace_marker-layer .ace_active-line {\n    background-color: #CAD6FA;\n    z-index: 1;\n}\n.ace_dark.ace_editor.ace_autocomplete .ace_marker-layer .ace_active-line {\n    background-color: #3a674e;\n}\n.ace_editor.ace_autocomplete .ace_line-hover {\n    border: 1px solid #abbffe;\n    margin-top: -1px;\n    background: rgba(233,233,253,0.4);\n    position: absolute;\n    z-index: 2;\n}\n.ace_dark.ace_editor.ace_autocomplete .ace_line-hover {\n    border: 1px solid rgba(109, 150, 13, 0.8);\n    background: rgba(58, 103, 78, 0.62);\n}\n.ace_completion-meta {\n    opacity: 0.5;\n    margin: 0.9em;\n}\n.ace_completion-message {\n    color: blue;\n}\n.ace_editor.ace_autocomplete .ace_completion-highlight{\n    color: #2d69c7;\n}\n.ace_dark.ace_editor.ace_autocomplete .ace_completion-highlight{\n    color: #93ca12;\n}\n.ace_editor.ace_autocomplete {\n    width: 300px;\n    z-index: 200000;\n    border: 1px lightgray solid;\n    position: fixed;\n    box-shadow: 2px 3px 5px rgba(0,0,0,.2);\n    line-height: 1.4;\n    background: #fefefe;\n    color: #111;\n}\n.ace_dark.ace_editor.ace_autocomplete {\n    border: 1px #484747 solid;\n    box-shadow: 2px 3px 5px rgba(0, 0, 0, 0.51);\n    line-height: 1.4;\n    background: #25282c;\n    color: #c1c1c1;\n}", "autocompletion.css", false);
-exports.AcePopup = AcePopup;
-exports.$singleLineEditor = $singleLineEditor;
-exports.getAriaId = getAriaId;
-
-});
-
-define("ace/autocomplete/util",["require","exports","module"], function(require, exports, module){"use strict";
-exports.parForEach = function (array, fn, callback) {
-    var completed = 0;
-    var arLength = array.length;
-    if (arLength === 0)
-        callback();
-    for (var i = 0; i < arLength; i++) {
-        fn(array[i], function (result, err) {
-            completed++;
-            if (completed === arLength)
-                callback(result, err);
-        });
-    }
-};
-var ID_REGEX = /[a-zA-Z_0-9\$\-\u00A2-\u2000\u2070-\uFFFF]/;
-exports.retrievePrecedingIdentifier = function (text, pos, regex) {
-    regex = regex || ID_REGEX;
-    var buf = [];
-    for (var i = pos - 1; i >= 0; i--) {
-        if (regex.test(text[i]))
-            buf.push(text[i]);
-        else
-            break;
-    }
-    return buf.reverse().join("");
-};
-exports.retrieveFollowingIdentifier = function (text, pos, regex) {
-    regex = regex || ID_REGEX;
-    var buf = [];
-    for (var i = pos; i < text.length; i++) {
-        if (regex.test(text[i]))
-            buf.push(text[i]);
-        else
-            break;
-    }
-    return buf;
-};
-exports.getCompletionPrefix = function (editor) {
-    var pos = editor.getCursorPosition();
-    var line = editor.session.getLine(pos.row);
-    var prefix;
-    editor.completers.forEach(function (completer) {
-        if (completer.identifierRegexps) {
-            completer.identifierRegexps.forEach(function (identifierRegex) {
-                if (!prefix && identifierRegex)
-                    prefix = this.retrievePrecedingIdentifier(line, pos.column, identifierRegex);
-            }.bind(this));
-        }
-    }.bind(this));
-    return prefix || this.retrievePrecedingIdentifier(line, pos.column);
-};
-
-});
-
-define("ace/autocomplete",["require","exports","module","ace/keyboard/hash_handler","ace/autocomplete/popup","ace/autocomplete/popup","ace/autocomplete/util","ace/lib/lang","ace/lib/dom","ace/snippets","ace/config"], function(require, exports, module){"use strict";
-var HashHandler = require("./keyboard/hash_handler").HashHandler;
-var AcePopup = require("./autocomplete/popup").AcePopup;
-var getAriaId = require("./autocomplete/popup").getAriaId;
-var util = require("./autocomplete/util");
-var lang = require("./lib/lang");
-var dom = require("./lib/dom");
-var snippetManager = require("./snippets").snippetManager;
-var config = require("./config");
-var Autocomplete = function () {
-    this.autoInsert = false;
-    this.autoSelect = true;
-    this.exactMatch = false;
-    this.gatherCompletionsId = 0;
-    this.keyboardHandler = new HashHandler();
-    this.keyboardHandler.bindKeys(this.commands);
-    this.blurListener = this.blurListener.bind(this);
-    this.changeListener = this.changeListener.bind(this);
-    this.mousedownListener = this.mousedownListener.bind(this);
-    this.mousewheelListener = this.mousewheelListener.bind(this);
-    this.changeTimer = lang.delayedCall(function () {
-        this.updateCompletions(true);
-    }.bind(this));
-    this.tooltipTimer = lang.delayedCall(this.updateDocTooltip.bind(this), 50);
-};
-(function () {
-    this.$init = function () {
-        this.popup = new AcePopup(document.body || document.documentElement);
-        this.popup.on("click", function (e) {
-            this.insertMatch();
-            e.stop();
-        }.bind(this));
-        this.popup.focus = this.editor.focus.bind(this.editor);
-        this.popup.on("show", this.tooltipTimer.bind(null, null));
-        this.popup.on("select", this.tooltipTimer.bind(null, null));
-        this.popup.on("changeHoverMarker", this.tooltipTimer.bind(null, null));
-        return this.popup;
-    };
-    this.getPopup = function () {
-        return this.popup || this.$init();
-    };
-    this.openPopup = function (editor, prefix, keepPopupPosition) {
-        if (!this.popup)
-            this.$init();
-        this.popup.autoSelect = this.autoSelect;
-        this.popup.setData(this.completions.filtered, this.completions.filterText);
-        this.editor.textInput.setAriaOptions({ activeDescendant: getAriaId(this.popup.getRow()) });
-        editor.keyBinding.addKeyboardHandler(this.keyboardHandler);
-        var renderer = editor.renderer;
-        this.popup.setRow(this.autoSelect ? 0 : -1);
-        if (!keepPopupPosition) {
-            this.popup.setTheme(editor.getTheme());
-            this.popup.setFontSize(editor.getFontSize());
-            var lineHeight = renderer.layerConfig.lineHeight;
-            var pos = renderer.$cursorLayer.getPixelPosition(this.base, true);
-            pos.left -= this.popup.getTextLeftOffset();
-            var rect = editor.container.getBoundingClientRect();
-            pos.top += rect.top - renderer.layerConfig.offset;
-            pos.left += rect.left - editor.renderer.scrollLeft;
-            pos.left += renderer.gutterWidth;
-            this.popup.show(pos, lineHeight);
-        }
-        else if (keepPopupPosition && !prefix) {
-            this.detach();
-        }
-        this.changeTimer.cancel();
-    };
-    this.detach = function () {
-        this.editor.keyBinding.removeKeyboardHandler(this.keyboardHandler);
-        this.editor.off("changeSelection", this.changeListener);
-        this.editor.off("blur", this.blurListener);
-        this.editor.off("mousedown", this.mousedownListener);
-        this.editor.off("mousewheel", this.mousewheelListener);
-        this.changeTimer.cancel();
-        this.hideDocTooltip();
-        this.gatherCompletionsId += 1;
-        if (this.popup && this.popup.isOpen)
-            this.popup.hide();
-        if (this.base)
-            this.base.detach();
-        this.activated = false;
-        this.completions = this.base = null;
-    };
-    this.changeListener = function (e) {
-        var cursor = this.editor.selection.lead;
-        if (cursor.row != this.base.row || cursor.column < this.base.column) {
-            this.detach();
-        }
-        if (this.activated)
-            this.changeTimer.schedule();
-        else
-            this.detach();
-    };
-    this.blurListener = function (e) {
-        var el = document.activeElement;
-        var text = this.editor.textInput.getElement();
-        var fromTooltip = e.relatedTarget && this.tooltipNode && this.tooltipNode.contains(e.relatedTarget);
-        var container = this.popup && this.popup.container;
-        if (el != text && el.parentNode != container && !fromTooltip
-            && el != this.tooltipNode && e.relatedTarget != text) {
-            this.detach();
-        }
-    };
-    this.mousedownListener = function (e) {
-        this.detach();
-    };
-    this.mousewheelListener = function (e) {
-        this.detach();
-    };
-    this.goTo = function (where) {
-        this.popup.goTo(where);
-    };
-    this.insertMatch = function (data, options) {
-        if (!data)
-            data = this.popup.getData(this.popup.getRow());
-        if (!data)
-            return false;
-        var completions = this.completions;
-        this.editor.startOperation({ command: { name: "insertMatch" } });
-        if (data.completer && data.completer.insertMatch) {
-            data.completer.insertMatch(this.editor, data);
-        }
-        else {
-            if (!completions)
-                return false;
-            if (completions.filterText) {
-                var ranges = this.editor.selection.getAllRanges();
-                for (var i = 0, range; range = ranges[i]; i++) {
-                    range.start.column -= completions.filterText.length;
-                    this.editor.session.remove(range);
-                }
-            }
-            if (data.snippet)
-                snippetManager.insertSnippet(this.editor, data.snippet);
-            else
-                this.editor.execCommand("insertstring", data.value || data);
-        }
-        if (this.completions == completions)
-            this.detach();
-        this.editor.endOperation();
-    };
-    this.commands = {
-        "Up": function (editor) { editor.completer.goTo("up"); },
-        "Down": function (editor) { editor.completer.goTo("down"); },
-        "Ctrl-Up|Ctrl-Home": function (editor) { editor.completer.goTo("start"); },
-        "Ctrl-Down|Ctrl-End": function (editor) { editor.completer.goTo("end"); },
-        "Esc": function (editor) { editor.completer.detach(); },
-        "Return": function (editor) { return editor.completer.insertMatch(); },
-        "Shift-Return": function (editor) { editor.completer.insertMatch(null, { deleteSuffix: true }); },
-        "Tab": function (editor) {
-            var result = editor.completer.insertMatch();
-            if (!result && !editor.tabstopManager)
-                editor.completer.goTo("down");
-            else
-                return result;
-        },
-        "PageUp": function (editor) { editor.completer.popup.gotoPageUp(); },
-        "PageDown": function (editor) { editor.completer.popup.gotoPageDown(); }
-    };
-    this.gatherCompletions = function (editor, callback) {
-        var session = editor.getSession();
-        var pos = editor.getCursorPosition();
-        var prefix = util.getCompletionPrefix(editor);
-        this.base = session.doc.createAnchor(pos.row, pos.column - prefix.length);
-        this.base.$insertRight = true;
-        var matches = [];
-        var total = editor.completers.length;
-        editor.completers.forEach(function (completer, i) {
-            completer.getCompletions(editor, session, pos, prefix, function (err, results) {
-                if (!err && results)
-                    matches = matches.concat(results);
-                callback(null, {
-                    prefix: util.getCompletionPrefix(editor),
-                    matches: matches,
-                    finished: (--total === 0)
-                });
-            });
-        });
-        return true;
-    };
-    this.showPopup = function (editor, options) {
-        if (this.editor)
-            this.detach();
-        this.activated = true;
-        this.editor = editor;
-        if (editor.completer != this) {
-            if (editor.completer)
-                editor.completer.detach();
-            editor.completer = this;
-        }
-        editor.on("changeSelection", this.changeListener);
-        editor.on("blur", this.blurListener);
-        editor.on("mousedown", this.mousedownListener);
-        editor.on("mousewheel", this.mousewheelListener);
-        this.updateCompletions(false, options);
-    };
-    this.updateCompletions = function (keepPopupPosition, options) {
-        if (keepPopupPosition && this.base && this.completions) {
-            var pos = this.editor.getCursorPosition();
-            var prefix = this.editor.session.getTextRange({ start: this.base, end: pos });
-            if (prefix == this.completions.filterText)
-                return;
-            this.completions.setFilter(prefix);
-            if (!this.completions.filtered.length)
-                return this.detach();
-            if (this.completions.filtered.length == 1
-                && this.completions.filtered[0].value == prefix
-                && !this.completions.filtered[0].snippet)
-                return this.detach();
-            this.openPopup(this.editor, prefix, keepPopupPosition);
-            return;
-        }
-        if (options && options.matches) {
-            var pos = this.editor.getSelectionRange().start;
-            this.base = this.editor.session.doc.createAnchor(pos.row, pos.column);
-            this.base.$insertRight = true;
-            this.completions = new FilteredList(options.matches);
-            return this.openPopup(this.editor, "", keepPopupPosition);
-        }
-        var _id = this.gatherCompletionsId;
-        var detachIfFinished = function (results) {
-            if (!results.finished)
-                return;
-            return this.detach();
-        }.bind(this);
-        var processResults = function (results) {
-            var prefix = results.prefix;
-            var matches = results.matches;
-            this.completions = new FilteredList(matches);
-            if (this.exactMatch)
-                this.completions.exactMatch = true;
-            this.completions.setFilter(prefix);
-            var filtered = this.completions.filtered;
-            if (!filtered.length)
-                return detachIfFinished(results);
-            if (filtered.length == 1 && filtered[0].value == prefix && !filtered[0].snippet)
-                return detachIfFinished(results);
-            if (this.autoInsert && filtered.length == 1 && results.finished)
-                return this.insertMatch(filtered[0]);
-            this.openPopup(this.editor, prefix, keepPopupPosition);
-        }.bind(this);
-        var isImmediate = true;
-        var immediateResults = null;
-        this.gatherCompletions(this.editor, function (err, results) {
-            var prefix = results.prefix;
-            var matches = results && results.matches;
-            if (!matches || !matches.length)
-                return detachIfFinished(results);
-            if (prefix.indexOf(results.prefix) !== 0 || _id != this.gatherCompletionsId)
-                return;
-            if (isImmediate) {
-                immediateResults = results;
-                return;
-            }
-            processResults(results);
-        }.bind(this));
-        isImmediate = false;
-        if (immediateResults) {
-            var results = immediateResults;
-            immediateResults = null;
-            processResults(results);
-        }
-    };
-    this.cancelContextMenu = function () {
-        this.editor.$mouseHandler.cancelContextMenu();
-    };
-    this.updateDocTooltip = function () {
-        var popup = this.popup;
-        var all = popup.data;
-        var selected = all && (all[popup.getHoveredRow()] || all[popup.getRow()]);
-        var doc = null;
-        if (!selected || !this.editor || !this.popup.isOpen)
-            return this.hideDocTooltip();
-        this.editor.completers.some(function (completer) {
-            if (completer.getDocTooltip)
-                doc = completer.getDocTooltip(selected);
-            return doc;
-        });
-        if (!doc && typeof selected != "string")
-            doc = selected;
-        if (typeof doc == "string")
-            doc = { docText: doc };
-        if (!doc || !(doc.docHTML || doc.docText))
-            return this.hideDocTooltip();
-        this.showDocTooltip(doc);
-    };
-    this.showDocTooltip = function (item) {
-        if (!this.tooltipNode) {
-            this.tooltipNode = dom.createElement("div");
-            this.tooltipNode.className = "ace_tooltip ace_doc-tooltip";
-            this.tooltipNode.style.margin = 0;
-            this.tooltipNode.style.pointerEvents = "auto";
-            this.tooltipNode.tabIndex = -1;
-            this.tooltipNode.onblur = this.blurListener.bind(this);
-            this.tooltipNode.onclick = this.onTooltipClick.bind(this);
-        }
-        var tooltipNode = this.tooltipNode;
-        if (item.docHTML) {
-            tooltipNode.innerHTML = item.docHTML;
-        }
-        else if (item.docText) {
-            tooltipNode.textContent = item.docText;
-        }
-        if (!tooltipNode.parentNode)
-            document.body.appendChild(tooltipNode);
-        var popup = this.popup;
-        var rect = popup.container.getBoundingClientRect();
-        tooltipNode.style.top = popup.container.style.top;
-        tooltipNode.style.bottom = popup.container.style.bottom;
-        tooltipNode.style.display = "block";
-        if (window.innerWidth - rect.right < 320) {
-            if (rect.left < 320) {
-                if (popup.isTopdown) {
-                    tooltipNode.style.top = rect.bottom + "px";
-                    tooltipNode.style.left = rect.left + "px";
-                    tooltipNode.style.right = "";
-                    tooltipNode.style.bottom = "";
-                }
-                else {
-                    tooltipNode.style.top = popup.container.offsetTop - tooltipNode.offsetHeight + "px";
-                    tooltipNode.style.left = rect.left + "px";
-                    tooltipNode.style.right = "";
-                    tooltipNode.style.bottom = "";
-                }
-            }
-            else {
-                tooltipNode.style.right = window.innerWidth - rect.left + "px";
-                tooltipNode.style.left = "";
-            }
-        }
-        else {
-            tooltipNode.style.left = (rect.right + 1) + "px";
-            tooltipNode.style.right = "";
-        }
-    };
-    this.hideDocTooltip = function () {
-        this.tooltipTimer.cancel();
-        if (!this.tooltipNode)
-            return;
-        var el = this.tooltipNode;
-        if (!this.editor.isFocused() && document.activeElement == el)
-            this.editor.focus();
-        this.tooltipNode = null;
-        if (el.parentNode)
-            el.parentNode.removeChild(el);
-    };
-    this.onTooltipClick = function (e) {
-        var a = e.target;
-        while (a && a != this.tooltipNode) {
-            if (a.nodeName == "A" && a.href) {
-                a.rel = "noreferrer";
-                a.target = "_blank";
-                break;
-            }
-            a = a.parentNode;
-        }
-    };
-    this.destroy = function () {
-        this.detach();
-        if (this.popup) {
-            this.popup.destroy();
-            var el = this.popup.container;
-            if (el && el.parentNode)
-                el.parentNode.removeChild(el);
-        }
-        if (this.editor && this.editor.completer == this)
-            this.editor.completer == null;
-        this.popup = null;
-    };
-}).call(Autocomplete.prototype);
-Autocomplete.for = function (editor) {
-    if (editor.completer) {
-        return editor.completer;
-    }
-    if (config.get("sharedPopups")) {
-        if (!Autocomplete.$shared)
-            Autocomplete.$sharedInstance = new Autocomplete();
-        editor.completer = Autocomplete.$sharedInstance;
-    }
-    else {
-        editor.completer = new Autocomplete();
-        editor.once("destroy", function (e, editor) {
-            editor.completer.destroy();
-        });
-    }
-    return editor.completer;
-};
-Autocomplete.startCommand = {
-    name: "startAutocomplete",
-    exec: function (editor, options) {
-        var completer = Autocomplete.for(editor);
-        completer.autoInsert = false;
-        completer.autoSelect = true;
-        completer.showPopup(editor, options);
-        completer.cancelContextMenu();
-    },
-    bindKey: "Ctrl-Space|Ctrl-Shift-Space|Alt-Space"
-};
-var FilteredList = function (array, filterText) {
-    this.all = array;
-    this.filtered = array;
-    this.filterText = filterText || "";
-    this.exactMatch = false;
-};
-(function () {
-    this.setFilter = function (str) {
-        if (str.length > this.filterText && str.lastIndexOf(this.filterText, 0) === 0)
-            var matches = this.filtered;
-        else
-            var matches = this.all;
-        this.filterText = str;
-        matches = this.filterCompletions(matches, this.filterText);
-        matches = matches.sort(function (a, b) {
-            return b.exactMatch - a.exactMatch || b.$score - a.$score
-                || (a.caption || a.value).localeCompare(b.caption || b.value);
-        });
-        var prev = null;
-        matches = matches.filter(function (item) {
-            var caption = item.snippet || item.caption || item.value;
-            if (caption === prev)
-                return false;
-            prev = caption;
-            return true;
-        });
-        this.filtered = matches;
-    };
-    this.filterCompletions = function (items, needle) {
-        var results = [];
-        var upper = needle.toUpperCase();
-        var lower = needle.toLowerCase();
-        loop: for (var i = 0, item; item = items[i]; i++) {
-            var caption = item.caption || item.value || item.snippet;
-            if (!caption)
-                continue;
-            var lastIndex = -1;
-            var matchMask = 0;
-            var penalty = 0;
-            var index, distance;
-            if (this.exactMatch) {
-                if (needle !== caption.substr(0, needle.length))
-                    continue loop;
-            }
-            else {
-                var fullMatchIndex = caption.toLowerCase().indexOf(lower);
-                if (fullMatchIndex > -1) {
-                    penalty = fullMatchIndex;
-                }
-                else {
-                    for (var j = 0; j < needle.length; j++) {
-                        var i1 = caption.indexOf(lower[j], lastIndex + 1);
-                        var i2 = caption.indexOf(upper[j], lastIndex + 1);
-                        index = (i1 >= 0) ? ((i2 < 0 || i1 < i2) ? i1 : i2) : i2;
-                        if (index < 0)
-                            continue loop;
-                        distance = index - lastIndex - 1;
-                        if (distance > 0) {
-                            if (lastIndex === -1)
-                                penalty += 10;
-                            penalty += distance;
-                            matchMask = matchMask | (1 << j);
-                        }
-                        lastIndex = index;
-                    }
-                }
-            }
-            item.matchMask = matchMask;
-            item.exactMatch = penalty ? 0 : 1;
-            item.$score = (item.score || 0) - penalty;
-            results.push(item);
-        }
-        return results;
-    };
-}).call(FilteredList.prototype);
-exports.Autocomplete = Autocomplete;
-exports.FilteredList = FilteredList;
-
-});
-
 define("ace/autocomplete/text_completer",["require","exports","module","ace/range"], function(require, exports, module){var Range = require("../range").Range;
 var splitRegex = /[^a-zA-Z_0-9\$\-\u00C0-\u1FFF\u2C00-\uD7FF\w]+/;
 function getWordIndex(doc, pos) {
-    var textBefore = doc.getTextRange(Range.fromPoints({ row: 0, column: 0 }, pos));
+    var textBefore = doc.getTextRange(Range.fromPoints({
+        row: 0,
+        column: 0
+    }, pos));
     return textBefore.split(splitRegex).length - 1;
 }
 function wordDistance(doc, pos) {
@@ -6237,8 +6944,13 @@ var keyWordCompleter = {
         }
         var state = editor.session.getState(pos.row);
         var completions = session.$mode.getCompletions(state, session, pos, prefix);
+        completions = completions.map(function (el) {
+            el.completerId = keyWordCompleter.id;
+            return el;
+        });
         callback(null, completions);
-    }
+    },
+    id: "keywordCompleter"
 };
 var transformSnippetTooltip = function (str) {
     var record = {};
@@ -6269,20 +6981,21 @@ var snippetCompleter = {
                     caption: caption,
                     snippet: s.content,
                     meta: s.tabTrigger && !s.name ? s.tabTrigger + "\u21E5 " : "snippet",
-                    type: "snippet"
+                    completerId: snippetCompleter.id
                 });
             }
         }, this);
         callback(null, completions);
     },
     getDocTooltip: function (item) {
-        if (item.type == "snippet" && !item.docHTML) {
+        if (item.snippet && !item.docHTML) {
             item.docHTML = [
                 "<b>", lang.escapeHTML(item.caption), "</b>", "<hr></hr>",
                 lang.escapeHTML(transformSnippetTooltip(item.snippet))
             ].join("");
         }
-    }
+    },
+    id: "snippetCompleter"
 };
 var completers = [snippetCompleter, textCompleter, keyWordCompleter];
 exports.setCompleters = function (val) {
@@ -6343,13 +7056,30 @@ var doLiveAutocomplete = function (e) {
         if (hasCompleter && !util.getCompletionPrefix(editor))
             editor.completer.detach();
     }
-    else if (e.command.name === "insertstring") {
-        var prefix = util.getCompletionPrefix(editor);
-        if (prefix && !hasCompleter) {
-            var completer = Autocomplete.for(editor);
-            completer.autoInsert = false;
-            completer.showPopup(editor);
+    else if (e.command.name === "insertstring" && !hasCompleter) {
+        lastExecEvent = e;
+        var delay = e.editor.$liveAutocompletionDelay;
+        if (delay) {
+            liveAutocompleteTimer.delay(delay);
         }
+        else {
+            showLiveAutocomplete(e);
+        }
+    }
+};
+var lastExecEvent;
+var liveAutocompleteTimer = lang.delayedCall(function () {
+    showLiveAutocomplete(lastExecEvent);
+}, 0);
+var showLiveAutocomplete = function (e) {
+    var editor = e.editor;
+    var prefix = util.getCompletionPrefix(editor);
+    var previousChar = e.args;
+    var triggerAutocomplete = util.triggerAutocomplete(editor, previousChar);
+    if (prefix && prefix.length >= editor.$liveAutocompletionThreshold || triggerAutocomplete) {
+        var completer = Autocomplete.for(editor);
+        completer.autoShown = true;
+        completer.showPopup(editor);
     }
 };
 var Editor = require("../editor").Editor;
@@ -6375,10 +7105,16 @@ require("../config").defineOptions(Editor.prototype, "editor", {
                 this.commands.on('afterExec', doLiveAutocomplete);
             }
             else {
-                this.commands.removeListener('afterExec', doLiveAutocomplete);
+                this.commands.off('afterExec', doLiveAutocomplete);
             }
         },
         value: false
+    },
+    liveAutocompletionDelay: {
+        initialValue: 0
+    },
+    liveAutocompletionThreshold: {
+        initialValue: 0
     },
     enableSnippets: {
         set: function (val) {
@@ -6395,6 +7131,809 @@ require("../config").defineOptions(Editor.prototype, "editor", {
         value: false
     }
 });
+
+});
+
+define("ace/ext/command_bar",["require","exports","module","ace/tooltip","ace/lib/event_emitter","ace/lib/lang","ace/lib/dom","ace/lib/oop","ace/lib/useragent"], function(require, exports, module){var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
+var Tooltip = require("../tooltip").Tooltip;
+var EventEmitter = require("../lib/event_emitter").EventEmitter;
+var lang = require("../lib/lang");
+var dom = require("../lib/dom");
+var oop = require("../lib/oop");
+var useragent = require("../lib/useragent");
+var BUTTON_CLASS_NAME = 'command_bar_tooltip_button';
+var VALUE_CLASS_NAME = 'command_bar_button_value';
+var CAPTION_CLASS_NAME = 'command_bar_button_caption';
+var KEYBINDING_CLASS_NAME = 'command_bar_keybinding';
+var TOOLTIP_CLASS_NAME = 'command_bar_tooltip';
+var MORE_OPTIONS_BUTTON_ID = 'MoreOptionsButton';
+var defaultDelay = 100;
+var defaultMaxElements = 4;
+var minPosition = function (posA, posB) {
+    if (posB.row > posA.row) {
+        return posA;
+    }
+    else if (posB.row === posA.row && posB.column > posA.column) {
+        return posA;
+    }
+    return posB;
+};
+var keyDisplayMap = {
+    "Ctrl": { mac: "^" },
+    "Option": { mac: "⌥" },
+    "Command": { mac: "⌘" },
+    "Cmd": { mac: "⌘" },
+    "Shift": "⇧",
+    "Left": "←",
+    "Right": "→",
+    "Up": "↑",
+    "Down": "↓"
+};
+var CommandBarTooltip = /** @class */ (function () {
+    function CommandBarTooltip(parentNode, options) {
+        var e_1, _a;
+        options = options || {};
+        this.parentNode = parentNode;
+        this.tooltip = new Tooltip(this.parentNode);
+        this.moreOptions = new Tooltip(this.parentNode);
+        this.maxElementsOnTooltip = options.maxElementsOnTooltip || defaultMaxElements;
+        this.$alwaysShow = options.alwaysShow || false;
+        this.eventListeners = {};
+        this.elements = {};
+        this.commands = {};
+        this.tooltipEl = dom.buildDom(['div', { class: TOOLTIP_CLASS_NAME }], this.tooltip.getElement());
+        this.moreOptionsEl = dom.buildDom(['div', { class: TOOLTIP_CLASS_NAME + " tooltip_more_options" }], this.moreOptions.getElement());
+        this.$showTooltipTimer = lang.delayedCall(this.$showTooltip.bind(this), options.showDelay || defaultDelay);
+        this.$hideTooltipTimer = lang.delayedCall(this.$hideTooltip.bind(this), options.hideDelay || defaultDelay);
+        this.$tooltipEnter = this.$tooltipEnter.bind(this);
+        this.$onMouseMove = this.$onMouseMove.bind(this);
+        this.$onChangeScroll = this.$onChangeScroll.bind(this);
+        this.$onEditorChangeSession = this.$onEditorChangeSession.bind(this);
+        this.$scheduleTooltipForHide = this.$scheduleTooltipForHide.bind(this);
+        this.$preventMouseEvent = this.$preventMouseEvent.bind(this);
+        try {
+            for (var _b = __values(["mousedown", "mouseup", "click"]), _c = _b.next(); !_c.done; _c = _b.next()) {
+                var event = _c.value;
+                this.tooltip.getElement().addEventListener(event, this.$preventMouseEvent);
+                this.moreOptions.getElement().addEventListener(event, this.$preventMouseEvent);
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
+    }
+    CommandBarTooltip.prototype.registerCommand = function (id, command) {
+        var registerForMainTooltip = Object.keys(this.commands).length < this.maxElementsOnTooltip;
+        if (!registerForMainTooltip && !this.elements[MORE_OPTIONS_BUTTON_ID]) {
+            this.$createCommand(MORE_OPTIONS_BUTTON_ID, {
+                name: "···",
+                exec: 
+                function () {
+                    this.$shouldHideMoreOptions = false;
+                    this.$setMoreOptionsVisibility(!this.isMoreOptionsShown());
+                }.bind(this),
+                type: "checkbox",
+                getValue: function () {
+                    return this.isMoreOptionsShown();
+                }.bind(this),
+                enabled: true
+            }, true);
+        }
+        this.$createCommand(id, command, registerForMainTooltip);
+        if (this.isShown()) {
+            this.updatePosition();
+        }
+    };
+    CommandBarTooltip.prototype.isShown = function () {
+        return !!this.tooltip && this.tooltip.isOpen;
+    };
+    CommandBarTooltip.prototype.isMoreOptionsShown = function () {
+        return !!this.moreOptions && this.moreOptions.isOpen;
+    };
+    CommandBarTooltip.prototype.getAlwaysShow = function () {
+        return this.$alwaysShow;
+    };
+    CommandBarTooltip.prototype.setAlwaysShow = function (alwaysShow) {
+        this.$alwaysShow = alwaysShow;
+        this.$updateOnHoverHandlers(!this.$alwaysShow);
+        this._signal("alwaysShow", this.$alwaysShow);
+    };
+    CommandBarTooltip.prototype.attach = function (editor) {
+        if (!editor || (this.isShown() && this.editor === editor)) {
+            return;
+        }
+        this.detach();
+        this.editor = editor;
+        this.editor.on("changeSession", this.$onEditorChangeSession);
+        if (this.editor.session) {
+            this.editor.session.on("changeScrollLeft", this.$onChangeScroll);
+            this.editor.session.on("changeScrollTop", this.$onChangeScroll);
+        }
+        if (this.getAlwaysShow()) {
+            this.$showTooltip();
+        }
+        else {
+            this.$updateOnHoverHandlers(true);
+        }
+    };
+    CommandBarTooltip.prototype.updatePosition = function () {
+        if (!this.editor) {
+            return;
+        }
+        var renderer = this.editor.renderer;
+        var ranges;
+        if (this.editor.selection.getAllRanges) {
+            ranges = this.editor.selection.getAllRanges();
+        }
+        else {
+            ranges = [this.editor.getSelectionRange()];
+        }
+        if (!ranges.length) {
+            return;
+        }
+        var minPos = minPosition(ranges[0].start, ranges[0].end);
+        for (var i = 0, range; range = ranges[i]; i++) {
+            minPos = minPosition(minPos, minPosition(range.start, range.end));
+        }
+        var pos = renderer.$cursorLayer.getPixelPosition(minPos, true);
+        var tooltipEl = this.tooltip.getElement();
+        var screenWidth = window.innerWidth;
+        var screenHeight = window.innerHeight;
+        var rect = this.editor.container.getBoundingClientRect();
+        pos.top += rect.top - renderer.layerConfig.offset;
+        pos.left += rect.left + renderer.gutterWidth - renderer.scrollLeft;
+        var cursorVisible = pos.top >= rect.top && pos.top <= rect.bottom &&
+            pos.left >= rect.left + renderer.gutterWidth && pos.left <= rect.right;
+        if (!cursorVisible && this.isShown()) {
+            this.$hideTooltip();
+            return;
+        }
+        else if (cursorVisible && !this.isShown() && this.getAlwaysShow()) {
+            this.$showTooltip();
+            return;
+        }
+        var top = pos.top - tooltipEl.offsetHeight;
+        var left = Math.min(screenWidth - tooltipEl.offsetWidth, pos.left);
+        var tooltipFits = top >= 0 && top + tooltipEl.offsetHeight <= screenHeight &&
+            left >= 0 && left + tooltipEl.offsetWidth <= screenWidth;
+        if (!tooltipFits) {
+            this.$hideTooltip();
+            return;
+        }
+        this.tooltip.setPosition(left, top);
+        if (this.isMoreOptionsShown()) {
+            top = top + tooltipEl.offsetHeight;
+            left = this.elements[MORE_OPTIONS_BUTTON_ID].getBoundingClientRect().left;
+            var moreOptionsEl = this.moreOptions.getElement();
+            var screenHeight = window.innerHeight;
+            if (top + moreOptionsEl.offsetHeight > screenHeight) {
+                top -= tooltipEl.offsetHeight + moreOptionsEl.offsetHeight;
+            }
+            if (left + moreOptionsEl.offsetWidth > screenWidth) {
+                left = screenWidth - moreOptionsEl.offsetWidth;
+            }
+            this.moreOptions.setPosition(left, top);
+        }
+    };
+    CommandBarTooltip.prototype.update = function () {
+        Object.keys(this.elements).forEach(this.$updateElement.bind(this));
+    };
+    CommandBarTooltip.prototype.detach = function () {
+        this.tooltip.hide();
+        this.moreOptions.hide();
+        this.$updateOnHoverHandlers(false);
+        if (this.editor) {
+            this.editor.off("changeSession", this.$onEditorChangeSession);
+            if (this.editor.session) {
+                this.editor.session.off("changeScrollLeft", this.$onChangeScroll);
+                this.editor.session.off("changeScrollTop", this.$onChangeScroll);
+            }
+        }
+        this.$mouseInTooltip = false;
+        this.editor = null;
+    };
+    CommandBarTooltip.prototype.destroy = function () {
+        if (this.tooltip && this.moreOptions) {
+            this.detach();
+            this.tooltip.destroy();
+            this.moreOptions.destroy();
+        }
+        this.eventListeners = {};
+        this.commands = {};
+        this.elements = {};
+        this.tooltip = this.moreOptions = this.parentNode = null;
+    };
+    CommandBarTooltip.prototype.$createCommand = function (id, command, forMainTooltip) {
+        var parentEl = forMainTooltip ? this.tooltipEl : this.moreOptionsEl;
+        var keyParts = [];
+        var bindKey = command.bindKey;
+        if (bindKey) {
+            if (typeof bindKey === 'object') {
+                bindKey = useragent.isMac ? bindKey.mac : bindKey.win;
+            }
+            bindKey = bindKey.split("|")[0];
+            keyParts = bindKey.split("-");
+            keyParts = keyParts.map(function (key) {
+                if (keyDisplayMap[key]) {
+                    if (typeof keyDisplayMap[key] === 'string') {
+                        return keyDisplayMap[key];
+                    }
+                    else if (useragent.isMac && keyDisplayMap[key].mac) {
+                        return keyDisplayMap[key].mac;
+                    }
+                }
+                return key;
+            });
+        }
+        var buttonNode;
+        if (forMainTooltip && command.iconCssClass) {
+            buttonNode = [
+                'div',
+                {
+                    class: ["ace_icon_svg", command.iconCssClass].join(" "),
+                    "aria-label": command.name + " (" + command.bindKey + ")"
+                }
+            ];
+        }
+        else {
+            buttonNode = [
+                ['div', { class: VALUE_CLASS_NAME }],
+                ['div', { class: CAPTION_CLASS_NAME }, command.name]
+            ];
+            if (keyParts.length) {
+                buttonNode.push([
+                    'div',
+                    { class: KEYBINDING_CLASS_NAME },
+                    keyParts.map(function (keyPart) {
+                        return ['div', keyPart];
+                    })
+                ]);
+            }
+        }
+        dom.buildDom(['div', { class: [BUTTON_CLASS_NAME, command.cssClass || ""].join(" "), ref: id }, buttonNode], parentEl, this.elements);
+        this.commands[id] = command;
+        var eventListener = 
+        function (e) {
+            if (this.editor) {
+                this.editor.focus();
+            }
+            this.$shouldHideMoreOptions = this.isMoreOptionsShown();
+            if (!this.elements[id].disabled && command.exec) {
+                command.exec(this.editor);
+            }
+            if (this.$shouldHideMoreOptions) {
+                this.$setMoreOptionsVisibility(false);
+            }
+            this.update();
+            e.preventDefault();
+        }.bind(this);
+        this.eventListeners[id] = eventListener;
+        this.elements[id].addEventListener('click', eventListener.bind(this));
+        this.$updateElement(id);
+    };
+    CommandBarTooltip.prototype.$setMoreOptionsVisibility = function (visible) {
+        if (visible) {
+            this.moreOptions.setTheme(this.editor.renderer.theme);
+            this.moreOptions.setClassName(TOOLTIP_CLASS_NAME + "_wrapper");
+            this.moreOptions.show();
+            this.update();
+            this.updatePosition();
+        }
+        else {
+            this.moreOptions.hide();
+        }
+    };
+    CommandBarTooltip.prototype.$onEditorChangeSession = function (e) {
+        if (e.oldSession) {
+            e.oldSession.off("changeScrollTop", this.$onChangeScroll);
+            e.oldSession.off("changeScrollLeft", this.$onChangeScroll);
+        }
+        this.detach();
+    };
+    CommandBarTooltip.prototype.$onChangeScroll = function () {
+        if (this.editor.renderer && (this.isShown() || this.getAlwaysShow())) {
+            this.editor.renderer.once("afterRender", this.updatePosition.bind(this));
+        }
+    };
+    CommandBarTooltip.prototype.$onMouseMove = function (e) {
+        if (this.$mouseInTooltip) {
+            return;
+        }
+        var cursorPosition = this.editor.getCursorPosition();
+        var cursorScreenPosition = this.editor.renderer.textToScreenCoordinates(cursorPosition.row, cursorPosition.column);
+        var lineHeight = this.editor.renderer.lineHeight;
+        var isInCurrentLine = e.clientY >= cursorScreenPosition.pageY && e.clientY < cursorScreenPosition.pageY + lineHeight;
+        if (isInCurrentLine) {
+            if (!this.isShown() && !this.$showTooltipTimer.isPending()) {
+                this.$showTooltipTimer.delay();
+            }
+            if (this.$hideTooltipTimer.isPending()) {
+                this.$hideTooltipTimer.cancel();
+            }
+        }
+        else {
+            if (this.isShown() && !this.$hideTooltipTimer.isPending()) {
+                this.$hideTooltipTimer.delay();
+            }
+            if (this.$showTooltipTimer.isPending()) {
+                this.$showTooltipTimer.cancel();
+            }
+        }
+    };
+    CommandBarTooltip.prototype.$preventMouseEvent = function (e) {
+        if (this.editor) {
+            this.editor.focus();
+        }
+        e.preventDefault();
+    };
+    CommandBarTooltip.prototype.$scheduleTooltipForHide = function () {
+        this.$mouseInTooltip = false;
+        this.$showTooltipTimer.cancel();
+        this.$hideTooltipTimer.delay();
+    };
+    CommandBarTooltip.prototype.$tooltipEnter = function () {
+        this.$mouseInTooltip = true;
+        if (this.$showTooltipTimer.isPending()) {
+            this.$showTooltipTimer.cancel();
+        }
+        if (this.$hideTooltipTimer.isPending()) {
+            this.$hideTooltipTimer.cancel();
+        }
+    };
+    CommandBarTooltip.prototype.$updateOnHoverHandlers = function (enableHover) {
+        var tooltipEl = this.tooltip.getElement();
+        var moreOptionsEl = this.moreOptions.getElement();
+        if (enableHover) {
+            if (this.editor) {
+                this.editor.on("mousemove", this.$onMouseMove);
+                this.editor.renderer.getMouseEventTarget().addEventListener("mouseout", this.$scheduleTooltipForHide, true);
+            }
+            tooltipEl.addEventListener('mouseenter', this.$tooltipEnter);
+            tooltipEl.addEventListener('mouseleave', this.$scheduleTooltipForHide);
+            moreOptionsEl.addEventListener('mouseenter', this.$tooltipEnter);
+            moreOptionsEl.addEventListener('mouseleave', this.$scheduleTooltipForHide);
+        }
+        else {
+            if (this.editor) {
+                this.editor.off("mousemove", this.$onMouseMove);
+                this.editor.renderer.getMouseEventTarget().removeEventListener("mouseout", this.$scheduleTooltipForHide, true);
+            }
+            tooltipEl.removeEventListener('mouseenter', this.$tooltipEnter);
+            tooltipEl.removeEventListener('mouseleave', this.$scheduleTooltipForHide);
+            moreOptionsEl.removeEventListener('mouseenter', this.$tooltipEnter);
+            moreOptionsEl.removeEventListener('mouseleave', this.$scheduleTooltipForHide);
+        }
+    };
+    CommandBarTooltip.prototype.$showTooltip = function () {
+        if (this.isShown()) {
+            return;
+        }
+        this.tooltip.setTheme(this.editor.renderer.theme);
+        this.tooltip.setClassName(TOOLTIP_CLASS_NAME + "_wrapper");
+        this.tooltip.show();
+        this.update();
+        this.updatePosition();
+        this._signal("show");
+    };
+    CommandBarTooltip.prototype.$hideTooltip = function () {
+        this.$mouseInTooltip = false;
+        if (!this.isShown()) {
+            return;
+        }
+        this.moreOptions.hide();
+        this.tooltip.hide();
+        this._signal("hide");
+    };
+    CommandBarTooltip.prototype.$updateElement = function (id) {
+        var command = this.commands[id];
+        if (!command) {
+            return;
+        }
+        var el = this.elements[id];
+        var commandEnabled = command.enabled;
+        if (typeof commandEnabled === 'function') {
+            commandEnabled = commandEnabled(this.editor);
+        }
+        if (typeof command.getValue === 'function') {
+            var value = command.getValue(this.editor);
+            if (command.type === 'text') {
+                el.textContent = value;
+            }
+            else if (command.type === 'checkbox') {
+                var domCssFn = value ? dom.addCssClass : dom.removeCssClass;
+                var isOnTooltip = el.parentElement === this.tooltipEl;
+                el.ariaChecked = value;
+                if (isOnTooltip) {
+                    domCssFn(el, "ace_selected");
+                }
+                else {
+                    el = el.querySelector("." + VALUE_CLASS_NAME);
+                    domCssFn(el, "ace_checkmark");
+                }
+            }
+        }
+        if (commandEnabled && el.disabled) {
+            dom.removeCssClass(el, "ace_disabled");
+            el.ariaDisabled = el.disabled = false;
+            el.removeAttribute("disabled");
+        }
+        else if (!commandEnabled && !el.disabled) {
+            dom.addCssClass(el, "ace_disabled");
+            el.ariaDisabled = el.disabled = true;
+            el.setAttribute("disabled", "");
+        }
+    };
+    return CommandBarTooltip;
+}());
+oop.implement(CommandBarTooltip.prototype, EventEmitter);
+dom.importCssString("\n.ace_tooltip.".concat(TOOLTIP_CLASS_NAME, "_wrapper {\n    padding: 0;\n}\n\n.ace_tooltip .").concat(TOOLTIP_CLASS_NAME, " {\n    padding: 1px 5px;\n    display: flex;\n    pointer-events: auto;\n}\n\n.ace_tooltip .").concat(TOOLTIP_CLASS_NAME, ".tooltip_more_options {\n    padding: 1px;\n    flex-direction: column;\n}\n\ndiv.").concat(BUTTON_CLASS_NAME, " {\n    display: inline-flex;\n    cursor: pointer;\n    margin: 1px;\n    border-radius: 2px;\n    padding: 2px 5px;\n    align-items: center;\n}\n\ndiv.").concat(BUTTON_CLASS_NAME, ".ace_selected,\ndiv.").concat(BUTTON_CLASS_NAME, ":hover:not(.ace_disabled) {\n    background-color: rgba(0, 0, 0, 0.1);\n}\n\ndiv.").concat(BUTTON_CLASS_NAME, ".ace_disabled {\n    color: #777;\n    pointer-events: none;\n}\n\ndiv.").concat(BUTTON_CLASS_NAME, " .ace_icon_svg {\n    height: 12px;\n    background-color: #000;\n}\n\ndiv.").concat(BUTTON_CLASS_NAME, ".ace_disabled .ace_icon_svg {\n    background-color: #777;\n}\n\n.").concat(TOOLTIP_CLASS_NAME, ".tooltip_more_options .").concat(BUTTON_CLASS_NAME, " {\n    display: flex;\n}\n\n.").concat(TOOLTIP_CLASS_NAME, ".").concat(VALUE_CLASS_NAME, " {\n    display: none;\n}\n\n.").concat(TOOLTIP_CLASS_NAME, ".tooltip_more_options .").concat(VALUE_CLASS_NAME, " {\n    display: inline-block;\n    width: 12px;\n}\n\n.").concat(CAPTION_CLASS_NAME, " {\n    display: inline-block;\n}\n\n.").concat(KEYBINDING_CLASS_NAME, " {\n    margin: 0 2px;\n    display: inline-block;\n    font-size: 8px;\n}\n\n.").concat(TOOLTIP_CLASS_NAME, ".tooltip_more_options .").concat(KEYBINDING_CLASS_NAME, " {\n    margin-left: auto;\n}\n\n.").concat(KEYBINDING_CLASS_NAME, " div {\n    display: inline-block;\n    min-width: 8px;\n    padding: 2px;\n    margin: 0 1px;\n    border-radius: 2px;\n    background-color: #ccc;\n    text-align: center;\n}\n\n.ace_dark.ace_tooltip .").concat(TOOLTIP_CLASS_NAME, " {\n    background-color: #373737;\n    color: #eee;\n}\n\n.ace_dark div.").concat(BUTTON_CLASS_NAME, ".ace_disabled {\n    color: #979797;\n}\n\n.ace_dark div.").concat(BUTTON_CLASS_NAME, ".ace_selected,\n.ace_dark div.").concat(BUTTON_CLASS_NAME, ":hover:not(.ace_disabled) {\n    background-color: rgba(255, 255, 255, 0.1);\n}\n\n.ace_dark div.").concat(BUTTON_CLASS_NAME, " .ace_icon_svg {\n    background-color: #eee;\n}\n\n.ace_dark div.").concat(BUTTON_CLASS_NAME, ".ace_disabled .ace_icon_svg {\n    background-color: #979797;\n}\n\n.ace_dark .").concat(BUTTON_CLASS_NAME, ".ace_disabled {\n    color: #979797;\n}\n\n.ace_dark .").concat(KEYBINDING_CLASS_NAME, " div {\n    background-color: #575757;\n}\n\n.ace_checkmark::before {\n    content: '\u2713';\n}\n"), "commandbar.css", false);
+exports.CommandBarTooltip = CommandBarTooltip;
+exports.TOOLTIP_CLASS_NAME = TOOLTIP_CLASS_NAME;
+exports.BUTTON_CLASS_NAME = BUTTON_CLASS_NAME;
+
+});
+
+define("ace/ext/inline_autocomplete",["require","exports","module","ace/keyboard/hash_handler","ace/autocomplete/inline","ace/autocomplete","ace/autocomplete","ace/editor","ace/autocomplete/util","ace/lib/dom","ace/lib/lang","ace/ext/command_bar","ace/ext/command_bar","ace/ext/language_tools","ace/ext/language_tools","ace/ext/language_tools","ace/config"], function(require, exports, module){"use strict";
+var HashHandler = require("../keyboard/hash_handler").HashHandler;
+var AceInline = require("../autocomplete/inline").AceInline;
+var FilteredList = require("../autocomplete").FilteredList;
+var CompletionProvider = require("../autocomplete").CompletionProvider;
+var Editor = require("../editor").Editor;
+var util = require("../autocomplete/util");
+var dom = require("../lib/dom");
+var lang = require("../lib/lang");
+var CommandBarTooltip = require("./command_bar").CommandBarTooltip;
+var BUTTON_CLASS_NAME = require("./command_bar").BUTTON_CLASS_NAME;
+var snippetCompleter = require("./language_tools").snippetCompleter;
+var textCompleter = require("./language_tools").textCompleter;
+var keyWordCompleter = require("./language_tools").keyWordCompleter;
+var destroyCompleter = function (e, editor) {
+    editor.completer && editor.completer.destroy();
+};
+var InlineAutocomplete = /** @class */ (function () {
+    function InlineAutocomplete(editor) {
+        this.editor = editor;
+        this.keyboardHandler = new HashHandler(this.commands);
+        this.$index = -1;
+        this.blurListener = this.blurListener.bind(this);
+        this.changeListener = this.changeListener.bind(this);
+        this.changeTimer = lang.delayedCall(function () {
+            this.updateCompletions();
+        }.bind(this));
+    }
+    InlineAutocomplete.prototype.getInlineRenderer = function () {
+        if (!this.inlineRenderer)
+            this.inlineRenderer = new AceInline();
+        return this.inlineRenderer;
+    };
+    InlineAutocomplete.prototype.getInlineTooltip = function () {
+        if (!this.inlineTooltip) {
+            this.inlineTooltip = InlineAutocomplete.createInlineTooltip(document.body || document.documentElement);
+        }
+        return this.inlineTooltip;
+    };
+    InlineAutocomplete.prototype.show = function (options) {
+        this.activated = true;
+        if (this.editor.completer !== this) {
+            if (this.editor.completer)
+                this.editor.completer.detach();
+            this.editor.completer = this;
+        }
+        this.editor.on("changeSelection", this.changeListener);
+        this.editor.on("blur", this.blurListener);
+        this.updateCompletions(options);
+    };
+    InlineAutocomplete.prototype.$open = function () {
+        if (this.editor.textInput.setAriaOptions) {
+            this.editor.textInput.setAriaOptions({});
+        }
+        this.editor.keyBinding.addKeyboardHandler(this.keyboardHandler);
+        this.getInlineTooltip().attach(this.editor);
+        if (this.$index === -1) {
+            this.setIndex(0);
+        }
+        else {
+            this.$showCompletion();
+        }
+        this.changeTimer.cancel();
+    };
+    InlineAutocomplete.prototype.insertMatch = function () {
+        var result = this.getCompletionProvider().insertByIndex(this.editor, this.$index);
+        this.detach();
+        return result;
+    };
+    InlineAutocomplete.prototype.changeListener = function (e) {
+        var cursor = this.editor.selection.lead;
+        if (cursor.row != this.base.row || cursor.column < this.base.column) {
+            this.detach();
+        }
+        if (this.activated)
+            this.changeTimer.schedule();
+        else
+            this.detach();
+    };
+    InlineAutocomplete.prototype.blurListener = function (e) {
+        this.detach();
+    };
+    InlineAutocomplete.prototype.goTo = function (where) {
+        if (!this.completions || !this.completions.filtered) {
+            return;
+        }
+        var completionLength = this.completions.filtered.length;
+        switch (where.toLowerCase()) {
+            case "prev":
+                this.setIndex((this.$index - 1 + completionLength) % completionLength);
+                break;
+            case "next":
+                this.setIndex((this.$index + 1 + completionLength) % completionLength);
+                break;
+            case "first":
+                this.setIndex(0);
+                break;
+            case "last":
+                this.setIndex(this.completions.filtered.length - 1);
+                break;
+        }
+    };
+    InlineAutocomplete.prototype.getLength = function () {
+        if (!this.completions || !this.completions.filtered) {
+            return 0;
+        }
+        return this.completions.filtered.length;
+    };
+    InlineAutocomplete.prototype.getData = function (index) {
+        if (index == undefined || index === null) {
+            return this.completions.filtered[this.$index];
+        }
+        else {
+            return this.completions.filtered[index];
+        }
+    };
+    InlineAutocomplete.prototype.getIndex = function () {
+        return this.$index;
+    };
+    InlineAutocomplete.prototype.isOpen = function () {
+        return this.$index >= 0;
+    };
+    InlineAutocomplete.prototype.setIndex = function (value) {
+        if (!this.completions || !this.completions.filtered) {
+            return;
+        }
+        var newIndex = Math.max(-1, Math.min(this.completions.filtered.length - 1, value));
+        if (newIndex !== this.$index) {
+            this.$index = newIndex;
+            this.$showCompletion();
+        }
+    };
+    InlineAutocomplete.prototype.getCompletionProvider = function (initialPosition) {
+        if (!this.completionProvider)
+            this.completionProvider = new CompletionProvider(initialPosition);
+        return this.completionProvider;
+    };
+    InlineAutocomplete.prototype.$showCompletion = function () {
+        if (!this.getInlineRenderer().show(this.editor, this.completions.filtered[this.$index], this.completions.filterText)) {
+            this.getInlineRenderer().hide();
+        }
+        if (this.inlineTooltip && this.inlineTooltip.isShown()) {
+            this.inlineTooltip.update();
+        }
+    };
+    InlineAutocomplete.prototype.$updatePrefix = function () {
+        var pos = this.editor.getCursorPosition();
+        var prefix = this.editor.session.getTextRange({ start: this.base, end: pos });
+        this.completions.setFilter(prefix);
+        if (!this.completions.filtered.length)
+            return this.detach();
+        if (this.completions.filtered.length == 1
+            && this.completions.filtered[0].value == prefix
+            && !this.completions.filtered[0].snippet)
+            return this.detach();
+        this.$open(this.editor, prefix);
+        return prefix;
+    };
+    InlineAutocomplete.prototype.updateCompletions = function (options) {
+        var prefix = "";
+        if (options && options.matches) {
+            var pos = this.editor.getSelectionRange().start;
+            this.base = this.editor.session.doc.createAnchor(pos.row, pos.column);
+            this.base.$insertRight = true;
+            this.completions = new FilteredList(options.matches);
+            return this.$open(this.editor, "");
+        }
+        if (this.base && this.completions) {
+            prefix = this.$updatePrefix();
+        }
+        var session = this.editor.getSession();
+        var pos = this.editor.getCursorPosition();
+        var prefix = util.getCompletionPrefix(this.editor);
+        this.base = session.doc.createAnchor(pos.row, pos.column - prefix.length);
+        this.base.$insertRight = true;
+        var options = {
+            exactMatch: true,
+            ignoreCaption: true
+        };
+        this.getCompletionProvider({
+            prefix: prefix,
+            base: this.base,
+            pos: pos
+        }).provideCompletions(this.editor, options, 
+        function (err, completions, finished) {
+            var filtered = completions.filtered;
+            var prefix = util.getCompletionPrefix(this.editor);
+            if (finished) {
+                if (!filtered.length)
+                    return this.detach();
+                if (filtered.length == 1 && filtered[0].value == prefix && !filtered[0].snippet)
+                    return this.detach();
+            }
+            this.completions = completions;
+            this.$open(this.editor, prefix);
+        }.bind(this));
+    };
+    InlineAutocomplete.prototype.detach = function () {
+        if (this.editor) {
+            this.editor.keyBinding.removeKeyboardHandler(this.keyboardHandler);
+            this.editor.off("changeSelection", this.changeListener);
+            this.editor.off("blur", this.blurListener);
+        }
+        this.changeTimer.cancel();
+        if (this.inlineTooltip) {
+            this.inlineTooltip.detach();
+        }
+        this.setIndex(-1);
+        if (this.completionProvider) {
+            this.completionProvider.detach();
+        }
+        if (this.inlineRenderer && this.inlineRenderer.isOpen()) {
+            this.inlineRenderer.hide();
+        }
+        if (this.base)
+            this.base.detach();
+        this.activated = false;
+        this.completionProvider = this.completions = this.base = null;
+    };
+    InlineAutocomplete.prototype.destroy = function () {
+        this.detach();
+        if (this.inlineRenderer)
+            this.inlineRenderer.destroy();
+        if (this.inlineTooltip)
+            this.inlineTooltip.destroy();
+        if (this.editor && this.editor.completer == this) {
+            this.editor.off("destroy", destroyCompleter);
+            this.editor.completer = null;
+        }
+        this.inlineTooltip = this.editor = this.inlineRenderer = null;
+    };
+    InlineAutocomplete.prototype.updateDocTooltip = function () {
+    };
+    return InlineAutocomplete;
+}());
+InlineAutocomplete.prototype.commands = {
+    "Previous": {
+        bindKey: "Alt-[",
+        name: "Previous",
+        exec: function (editor) {
+            editor.completer.goTo("prev");
+        }
+    },
+    "Next": {
+        bindKey: "Alt-]",
+        name: "Next",
+        exec: function (editor) {
+            editor.completer.goTo("next");
+        }
+    },
+    "Accept": {
+        bindKey: { win: "Tab|Ctrl-Right", mac: "Tab|Cmd-Right" },
+        name: "Accept",
+        exec: function (editor) {
+            return /**@type{InlineAutocomplete}*/ (editor.completer).insertMatch();
+        }
+    },
+    "Close": {
+        bindKey: "Esc",
+        name: "Close",
+        exec: function (editor) {
+            editor.completer.detach();
+        }
+    }
+};
+InlineAutocomplete.for = function (editor) {
+    if (editor.completer instanceof InlineAutocomplete) {
+        return editor.completer;
+    }
+    if (editor.completer) {
+        editor.completer.destroy();
+        editor.completer = null;
+    }
+    editor.completer = new InlineAutocomplete(editor);
+    editor.once("destroy", destroyCompleter);
+    return editor.completer;
+};
+InlineAutocomplete.startCommand = {
+    name: "startInlineAutocomplete",
+    exec: function (editor, options) {
+        var completer = InlineAutocomplete.for(editor);
+        completer.show(options);
+    },
+    bindKey: { win: "Alt-C", mac: "Option-C" }
+};
+var completers = [snippetCompleter, textCompleter, keyWordCompleter];
+require("../config").defineOptions(Editor.prototype, "editor", {
+    enableInlineAutocompletion: {
+        set: function (val) {
+            if (val) {
+                if (!this.completers)
+                    this.completers = Array.isArray(val) ? val : completers;
+                this.commands.addCommand(InlineAutocomplete.startCommand);
+            }
+            else {
+                this.commands.removeCommand(InlineAutocomplete.startCommand);
+            }
+        },
+        value: false
+    }
+});
+InlineAutocomplete.createInlineTooltip = function (parentEl) {
+    var inlineTooltip = new CommandBarTooltip(parentEl);
+    inlineTooltip.registerCommand("Previous", 
+    Object.assign({}, InlineAutocomplete.prototype.commands["Previous"], {
+        enabled: true,
+        type: "button",
+        iconCssClass: "ace_arrow_rotated"
+    }));
+    inlineTooltip.registerCommand("Position", {
+        enabled: false,
+        getValue: function (editor) {
+            return editor ? [
+                (editor.completer).getIndex() + 1, /**@type{InlineAutocomplete}*/ (editor.completer).getLength()
+            ].join("/") : "";
+        },
+        type: "text",
+        cssClass: "completion_position"
+    });
+    inlineTooltip.registerCommand("Next", 
+    Object.assign({}, InlineAutocomplete.prototype.commands["Next"], {
+        enabled: true,
+        type: "button",
+        iconCssClass: "ace_arrow"
+    }));
+    inlineTooltip.registerCommand("Accept", 
+    Object.assign({}, InlineAutocomplete.prototype.commands["Accept"], {
+        enabled: function (editor) {
+            return !!editor && editor.completer.getIndex() >= 0;
+        },
+        type: "button"
+    }));
+    inlineTooltip.registerCommand("ShowTooltip", {
+        name: "Always Show Tooltip",
+        exec: function () {
+            inlineTooltip.setAlwaysShow(!inlineTooltip.getAlwaysShow());
+        },
+        enabled: true,
+        getValue: function () {
+            return inlineTooltip.getAlwaysShow();
+        },
+        type: "checkbox"
+    });
+    return inlineTooltip;
+};
+dom.importCssString("\n\n.ace_icon_svg.ace_arrow,\n.ace_icon_svg.ace_arrow_rotated {\n    -webkit-mask-image: url(\"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTUuODM3MDEgMTVMNC41ODc1MSAxMy43MTU1TDEwLjE0NjggOEw0LjU4NzUxIDIuMjg0NDZMNS44MzcwMSAxTDEyLjY0NjUgOEw1LjgzNzAxIDE1WiIgZmlsbD0iYmxhY2siLz48L3N2Zz4=\");\n}\n\n.ace_icon_svg.ace_arrow_rotated {\n    transform: rotate(180deg);\n}\n\ndiv.".concat(BUTTON_CLASS_NAME, ".completion_position {\n    padding: 0;\n}\n"), "inlineautocomplete.css", false);
+exports.InlineAutocomplete = InlineAutocomplete;
 
 });
 
@@ -6722,7 +8261,7 @@ exports.commands = [{
 
 });
 
-define("kitchen-sink/demo",["require","exports","module","ace/ext/rtl","ace/multi_select","kitchen-sink/inline_editor","kitchen-sink/dev_util","kitchen-sink/file_drop","ace/config","ace/lib/dom","ace/lib/net","ace/lib/lang","ace/lib/event","ace/theme/textmate","ace/edit_session","ace/undomanager","ace/keyboard/hash_handler","ace/virtual_renderer","ace/editor","ace/ext/whitespace","kitchen-sink/doclist","kitchen-sink/layout","kitchen-sink/util","ace/ext/elastic_tabstops_lite","ace/incremental_search","kitchen-sink/token_tooltip","ace/config","ace/worker/worker_client","ace/split","ace/ext/options","ace/ext/statusbar","ace/ext/emmet","ace/placeholder","ace/snippets","ace/ext/language_tools","ace/ext/beautify","ace/keyboard/keybinding","ace/commands/command_manager"], function(require, exports, module) {"use strict";
+define("kitchen-sink/demo",["require","exports","module","ace/ext/rtl","ace/multi_select","kitchen-sink/inline_editor","kitchen-sink/dev_util","kitchen-sink/file_drop","ace/config","ace/lib/dom","ace/lib/net","ace/lib/lang","ace/lib/event","ace/theme/textmate","ace/edit_session","ace/undomanager","ace/keyboard/hash_handler","ace/virtual_renderer","ace/editor","ace/range","ace/ext/whitespace","kitchen-sink/doclist","kitchen-sink/layout","kitchen-sink/util","ace/ext/elastic_tabstops_lite","ace/incremental_search","kitchen-sink/token_tooltip","ace/config","ace/config","ace/tooltip","ace/marker_group","ace/worker/worker_client","ace/split","ace/ext/options","ace/autocomplete","ace/ext/statusbar","ace/ext/emmet","ace/placeholder","ace/snippets","ace/ext/language_tools","ace/ext/inline_autocomplete","ace/ext/beautify","ace/keyboard/keybinding","ace/commands/command_manager"], function(require, exports, module) {"use strict";
 
 require("ace/ext/rtl");
 
@@ -6753,6 +8292,7 @@ var HashHandler = require("ace/keyboard/hash_handler").HashHandler;
 
 var Renderer = require("ace/virtual_renderer").VirtualRenderer;
 var Editor = require("ace/editor").Editor;
+var Range = require("ace/range").Range;
 
 var whitespace = require("ace/ext/whitespace");
 
@@ -6763,11 +8303,8 @@ var layout = require("./layout");
 var util = require("./util");
 var saveOption = util.saveOption;
 
-
-var ElasticTabstopsLite = require("ace/ext/elastic_tabstops_lite").ElasticTabstopsLite;
-
-var IncrementalSearch = require("ace/incremental_search").IncrementalSearch;
-
+require("ace/ext/elastic_tabstops_lite");
+require("ace/incremental_search");
 
 var TokenTooltip = require("./token_tooltip").TokenTooltip;
 require("ace/config").defineOptions(Editor.prototype, "editor", {
@@ -6787,6 +8324,141 @@ require("ace/config").defineOptions(Editor.prototype, "editor", {
         handlesSet: true
     }
 });
+
+require("ace/config").defineOptions(Editor.prototype, "editor", {
+    useAceLinters: {
+        set: function(val) {
+            if (val && !window.languageProvider) {
+                loadLanguageProvider(editor);
+            }
+            else if (val) {
+                window.languageProvider.registerEditor(this);
+            } else {
+            }
+        }
+    }
+});
+
+var {HoverTooltip} = require("ace/tooltip");
+var MarkerGroup = require("ace/marker_group").MarkerGroup;
+var docTooltip = new HoverTooltip();
+function loadLanguageProvider(editor) {
+    function loadScript(cb) {
+        if (define.amd) {
+            require([
+                "https://mkslanc.github.io/ace-linters/build/ace-linters.js"
+            ], function(m) {
+                cb(m.LanguageProvider);
+            });
+        } else {
+            net.loadScript([
+                "https://mkslanc.github.io/ace-linters/build/ace-linters.js"
+            ], function() {
+                cb(window.LanguageProvider);
+            });
+        }
+    }
+    loadScript(function(LanguageProvider) {
+        var languageProvider = LanguageProvider.fromCdn("https://mkslanc.github.io/ace-linters/build", {
+            functionality: {
+                hover: true,
+                completion: {
+                    overwriteCompleters: true
+                },
+                completionResolve: true,
+                format: true,
+                documentHighlights: true,
+                signatureHelp: false
+            }
+        });
+        window.languageProvider = languageProvider;
+        languageProvider.registerEditor(editor);
+        if (languageProvider.$hoverTooltip)
+            editor.off("mousemove", languageProvider.$hoverTooltip.onMouseMove);
+        languageProvider.$messageController.$worker.addEventListener("message", function(e) {
+            var id = e.data.sessionId.split(".")[0];
+            var session = languageProvider.$getSessionLanguageProvider({id: id})?.session;
+            if (e.data.type == 6) {
+                e.stopPropagation();
+                if (session) {
+                    showAnnotations(session, e.data.value);
+                }
+            } else if (e.data.type == 14) {
+                if (session) showOccurrenceMarkers(session, e.data.value);
+            }
+        }, true);
+        function showOccurrenceMarkers(session, positions) {
+            if (!session.state.occurrenceMarkers) {
+                session.state.occurrenceMarkers = new MarkerGroup(session);
+            }
+            session.state.occurrenceMarkers.setMarkers(positions.map(function(el) {
+                var r = el.range;
+                return {
+                    range: new Range(r.start.line, r.start.character, r.end.line, r.end.character),
+                    className: el.kind == 2
+                        ? "language_highlight_read"
+                        : el.kind == 3
+                        ? "language_highlight_write"
+                        : "language_highlight_text"
+                };
+            }));
+        }
+        function showAnnotations(session, diagnostics) {
+            session.clearAnnotations();
+            let annotations = diagnostics.map((el) => {
+                return {
+                    row: el.range.start.line,
+                    column: el.range.start.character,
+                    text: el.message,
+                    type: el.severity === 1 ? "error" : el.severity === 2 ? "warning" : "info"
+                };
+            });
+            if (annotations && annotations.length > 0) {
+                session.setAnnotations(annotations);
+            }
+            
+            if (!session.state) session.state = {}
+            if (!session.state.diagnosticMarkers) {
+                session.state.diagnosticMarkers = new MarkerGroup(session);
+            }
+            session.state.diagnosticMarkers.setMarkers(diagnostics.map(function(el) {
+                var r = el.range;
+                return {
+                    range: new Range(r.start.line, r.start.character, r.end.line, r.end.character),
+                    tooltipText: el.message,
+                    className:  "language_highlight_error"
+                };
+            }));
+        };
+        
+        docTooltip.setDataProvider(function(e, editor) {
+            let session = editor.session;
+            let docPos = e.getDocumentPosition();
+
+            languageProvider.doHover(session, docPos, function(hover) {
+                var errorMarker = session.state?.diagnosticMarkers.getMarkerAtPosition(docPos);
+
+                if (!errorMarker && !hover?.content) return;
+
+                var range = hover?.range || errorMarker?.range;
+                range = range ? Range.fromPoints(range.start, range.end) : session.getWordRange(docPos.row, docPos.column);
+                var hoverNode = hover && dom.buildDom(["div", {}]);
+                if (hoverNode) {
+                    hoverNode.innerHTML = languageProvider.getTooltipText(hover);
+                };
+                
+                var domNode = dom.buildDom(["div", {},
+                    errorMarker && ["div", {}, errorMarker.tooltipText.trim()],
+                    hoverNode
+                ]);
+                docTooltip.showForRange(editor, range, domNode, e);
+            });
+        });
+        
+        docTooltip.addToEditor(editor)
+    });
+}
+
 
 
 var workerModule = require("ace/worker/worker_client");
@@ -7023,6 +8695,8 @@ doclist.pickDocument = function(name) {
 var OptionPanel = require("ace/ext/options").OptionPanel;
 var optionsPanel = new OptionPanel(env.editor);
 
+var originalAutocompleteCommand = null;
+
 optionsPanel.add({
     Main: {
         Document: {
@@ -7079,6 +8753,34 @@ optionsPanel.add({
             path: "showTokenInfo",
             position: 2000
         },
+        "Inline preview for autocomplete": {
+            path: "inlineEnabledForAutocomplete",
+            position: 2000,
+            onchange: function(value) {
+                var Autocomplete = require("ace/autocomplete").Autocomplete;
+                if (value && !originalAutocompleteCommand) {
+                    originalAutocompleteCommand = Autocomplete.startCommand.exec;
+                    Autocomplete.startCommand.exec = function(editor) {
+                        var autocomplete = Autocomplete.for(editor);
+                        autocomplete.inlineEnabled = true;
+                        originalAutocompleteCommand(...arguments);
+                    }
+                } else if (!value) {
+                    var autocomplete = Autocomplete.for(editor);
+                    autocomplete.destroy();
+                    if (originalAutocompleteCommand)
+                        Autocomplete.startCommand.exec = originalAutocompleteCommand;
+                    originalAutocompleteCommand = null;
+                }
+            },
+            getValue: function() {
+                return !!originalAutocompleteCommand;
+            }
+        },
+        "Use Ace Linters": {
+            position: 3000,
+            path: "useAceLinters"
+        },
         "Show Textarea Position": devUtil.textPositionDebugger,
         "Text Input Debugger": devUtil.textInputDebugger,
     }
@@ -7087,6 +8789,7 @@ optionsPanel.add({
 var optionsPanelContainer = document.getElementById("optionsPanel");
 optionsPanel.render();
 optionsPanelContainer.insertBefore(optionsPanel.container, optionsPanelContainer.firstChild);
+optionsPanel.container.style.width = "80%";
 optionsPanel.on("setOption", function(e) {
     util.saveOption(e.name, e.value);
 });
@@ -7162,7 +8865,7 @@ env.editSnippets = function() {
 };
 
 optionsPanelContainer.insertBefore(
-    dom.buildDom(["div", {style: "text-align:right;margin-right: 60px"},
+    dom.buildDom(["div", {style: "text-align:right;width: 80%"},
         ["div", {}, 
             ["button", {onclick: env.editSnippets}, "Edit Snippets"]],
         ["div", {}, 
@@ -7173,14 +8876,83 @@ optionsPanelContainer.insertBefore(
                 env.editor.setValue(info, -1);
                 env.editor.setOption("wrap", 80);
             }}, "Show Browser Info"]],
-        devUtil.getUI()
+        devUtil.getUI(),
+        ["div", {},
+            "Open Dialog ",
+            ["button",  {onclick: openTestDialog.bind(null, false)}, "Scale"],
+            ["button",  {onclick: openTestDialog.bind(null, true)}, "Height"]
+        ]
     ]),
     optionsPanelContainer.children[1]
 );
 
+function openTestDialog(animateHeight) {
+    if (window.dialogEditor) 
+        window.dialogEditor.destroy();
+    var editor = ace.edit(null, {
+        value: "test editor", 
+        mode: "ace/mode/javascript"
+    });
+    window.dialogEditor = editor;
+
+    var dialog = dom.buildDom(["div", {
+        style: "transition: all 1s; position: fixed; z-index: 100000;"
+          + "background: darkblue; border: solid 1px black; display: flex; flex-direction: column"
+        }, 
+        ["div", {}, "test dialog"],
+        editor.container
+    ], document.body);
+    editor.container.style.flex = "1";
+    if (animateHeight) {
+        dialog.style.width = "0vw";
+        dialog.style.height = "0vh";
+        dialog.style.left = "20vw";
+        dialog.style.top = "20vh";
+        setTimeout(function() {            
+            dialog.style.width = "80vw";
+            dialog.style.height = "80vh";
+            dialog.style.left = "10vw";
+            dialog.style.top = "10vh";
+        }, 0);
+        
+    } else {
+        dialog.style.width = "80vw";
+        dialog.style.height = "80vh";
+        dialog.style.left = "10vw";
+        dialog.style.top = "10vh";
+        dialog.style.transform = "scale(0)";
+        setTimeout(function() {
+            dialog.style.transform = "scale(1)"
+        }, 0);
+    }
+    function close(e) {
+        if (!e || !dialog.contains(e.target)) {
+            if (animateHeight) {
+                dialog.style.width = "0vw";
+                dialog.style.height = "0vh";
+                dialog.style.left = "80vw";
+                dialog.style.top = "80vh";
+            } else {
+                dialog.style.transform = "scale(0)"
+            }
+            window.removeEventListener("mousedown", close);
+            dialog.addEventListener("transitionend", function() {
+                dialog.remove();
+                editor.destroy();
+            });
+        }
+    }
+    window.addEventListener("mousedown", close);
+    editor.focus()
+    editor.commands.bindKey("Esc", function() { close(); });
+}
+
+
 require("ace/ext/language_tools");
+require("ace/ext/inline_autocomplete");
 env.editor.setOptions({
     enableBasicAutocompletion: true,
+    enableInlineAutocompletion: true,
     enableSnippets: true
 });
 
