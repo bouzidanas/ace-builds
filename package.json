@@ -5,7 +5,9 @@
     "version": "1.34.2",
     "description": "Ace (Ajax.org Cloud9 Editor)",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "apply-patches": "node scripts/apply-patches.js",
+        "sync-upstream": "bash scripts/sync-upstream.sh"
     },
     "repository": {
         "type": "git",

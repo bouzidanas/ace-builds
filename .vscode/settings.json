@@ -1,0 +1,13 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "git remote": true,
+        "/^cd /home/anasb/repositories/ace-builds && node scripts/apply-patches\\.js 2>&1$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "diff": true,
+        "git merge-base": true,
+        "git rev-parse": true,
+        "continue": true
+    }
+}

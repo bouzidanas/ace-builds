@@ -22,7 +22,7 @@ var JsDocCommentHighlightRules = function () {
                         ]
                     }, {
                         token: ["rparen.doc", "text.doc", "variable.parameter.doc", "lparen.doc", "variable.parameter.doc", "rparen.doc"],
-                        regex: /(})(\s*)(?:([\w=:\/\.]+)|(?:(\[)([\w=:\/\.]+)(\])))/,
+                        regex: /(})(\s*)(?:([\w=:\/\.]+)|(?:(\[)([\w=:\/\.\-\'\" ]+)(\])))/,
                         next: "pop"
                     }, {
                         token: "rparen.doc",
@@ -878,7 +878,7 @@ var Tag = function () {
     this.end = { row: 0, column: 0 };
 };
 function is(token, type) {
-    return token.type.lastIndexOf(type + ".xml") > -1;
+    return token && token.type && token.type.lastIndexOf(type + ".xml") > -1;
 }
 (function () {
     this.getFoldWidget = function (session, foldStyle, row) {
@@ -1155,13 +1155,6 @@ oop.inherits(Mode, TextMode);
         else if (state == "doc-start") {
             if (endState == "start" || endState == "no_regex") {
                 return "";
-            }
-            var match = line.match(/^\s*(\/?)\*/);
-            if (match) {
-                if (match[1]) {
-                    indent += " ";
-                }
-                indent += "* ";
             }
         }
         return indent;
@@ -2366,40 +2359,46 @@ var DjangoHighlightRules = function () {
 };
 oop.inherits(DjangoHighlightRules, TextHighlightRules);
 var DjangoHtmlHighlightRules = function () {
-    this.$rules = new HtmlHighlightRules().getRules();
-    for (var i in this.$rules) {
-        this.$rules[i].unshift({
+    HtmlHighlightRules.call(this);
+    var startRules = [
+        {
             token: "comment.line",
             regex: "\\{#.*?#\\}"
         }, {
             token: "comment.block",
             regex: "\\{\\%\\s*comment\\s*\\%\\}",
-            merge: true,
-            next: "django-comment"
+            push: [{
+                    token: "comment.block",
+                    regex: "\\{\\%\\s*endcomment\\s*\\%\\}",
+                    next: "pop"
+                }, {
+                    defaultToken: "comment.block"
+                }]
         }, {
             token: "constant.language",
             regex: "\\{\\{",
-            next: "django-start"
+            push: "django-start"
         }, {
             token: "constant.language",
             regex: "\\{\\%",
-            next: "django-tag"
-        });
-        this.embedRules(DjangoHighlightRules, "django-", [{
-                token: "comment.block",
-                regex: "\\{\\%\\s*endcomment\\s*\\%\\}",
-                merge: true,
-                next: "start"
-            }, {
-                token: "constant.language",
-                regex: "\\%\\}",
-                next: "start"
-            }, {
-                token: "constant.language",
-                regex: "\\}\\}",
-                next: "start"
-            }]);
-    }
+            push: "django-tag"
+        }
+    ];
+    var endRules = [
+        {
+            token: "constant.language",
+            regex: "\\%\\}",
+            next: "pop"
+        }, {
+            token: "constant.language",
+            regex: "\\}\\}",
+            next: "pop"
+        }
+    ];
+    for (var key in this.$rules)
+        this.$rules[key].unshift.apply(this.$rules[key], startRules);
+    this.embedRules(DjangoHighlightRules, "django-", endRules, ["start"]);
+    this.normalizeRules();
 };
 oop.inherits(DjangoHtmlHighlightRules, HtmlHighlightRules);
 var Mode = function () {

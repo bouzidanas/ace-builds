@@ -570,7 +570,7 @@ var HashHandler = require("./hash_handler").HashHandler;
 exports.handler = new HashHandler();
 exports.handler.isEmacs = true;
 exports.handler.$id = "ace/keyboard/emacs";
-dom.importCssString("\n.emacs-mode .ace_cursor{\n    border: 1px rgba(50,250,50,0.8) solid!important;\n    box-sizing: border-box!important;\n    background-color: rgba(0,250,0,0.9);\n    opacity: 0.5;\n}\n.emacs-mode .ace_hidden-cursors .ace_cursor{\n    opacity: 1;\n    background-color: transparent;\n}\n.emacs-mode .ace_overwrite-cursors .ace_cursor {\n    opacity: 1;\n    background-color: transparent;\n    border-width: 0 0 2px 2px !important;\n}\n.emacs-mode .ace_text-layer {\n    z-index: 4\n}\n.emacs-mode .ace_cursor-layer {\n    z-index: 2\n}", 'emacsMode');
+dom.importCssString("\n.emacs-mode .ace_cursor{\n    border: 1px rgba(50,250,50,0.8) solid!important;\n    box-sizing: border-box!important;\n    background-color: rgba(0,250,0,0.9);\n    opacity: 0.5;\n}\n.emacs-mode .ace_hidden-cursors .ace_cursor{\n    opacity: 1;\n    background-color: transparent;\n}\n.emacs-mode .ace_overwrite-cursors .ace_cursor {\n    opacity: 1;\n    background-color: transparent;\n    border-width: 0 0 2px 2px !important;\n}\n.emacs-mode .ace_text-layer {\n    z-index: 4\n}\n.emacs-mode .ace_cursor-layer {\n    z-index: 2\n}", 'emacsMode', false);
 var $formerLongWords;
 var $formerLineStart;
 exports.handler.attach = function (editor) {
@@ -589,11 +589,11 @@ exports.handler.attach = function (editor) {
     editor.pushEmacsMark = function (p, activate) {
         var prevMark = this.session.$emacsMark;
         if (prevMark)
-            this.session.$emacsMarkRing.push(prevMark);
+            pushUnique(this.session.$emacsMarkRing, prevMark);
         if (!p || activate)
             this.setEmacsMark(p);
         else
-            this.session.$emacsMarkRing.push(p);
+            pushUnique(this.session.$emacsMarkRing, p);
     };
     editor.popEmacsMark = function () {
         var mark = this.emacsMark();
@@ -625,6 +625,13 @@ exports.handler.attach = function (editor) {
     editor.on('copy', this.onCopy);
     editor.on('paste', this.onPaste);
 };
+function pushUnique(ring, mark) {
+    var last = ring[ring.length - 1];
+    if (last && last.row === mark.row && last.column === mark.column) {
+        return;
+    }
+    ring.push(mark);
+}
 exports.handler.detach = function (editor) {
     editor.renderer.$blockCursor = false;
     editor.session.$selectLongWords = $formerLongWords;

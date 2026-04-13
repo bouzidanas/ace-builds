@@ -22,7 +22,7 @@ var JsDocCommentHighlightRules = function () {
                         ]
                     }, {
                         token: ["rparen.doc", "text.doc", "variable.parameter.doc", "lparen.doc", "variable.parameter.doc", "rparen.doc"],
-                        regex: /(})(\s*)(?:([\w=:\/\.]+)|(?:(\[)([\w=:\/\.]+)(\])))/,
+                        regex: /(})(\s*)(?:([\w=:\/\.]+)|(?:(\[)([\w=:\/\.\-\'\" ]+)(\])))/,
                         next: "pop"
                     }, {
                         token: "rparen.doc",
@@ -878,7 +878,7 @@ var Tag = function () {
     this.end = { row: 0, column: 0 };
 };
 function is(token, type) {
-    return token.type.lastIndexOf(type + ".xml") > -1;
+    return token && token.type && token.type.lastIndexOf(type + ".xml") > -1;
 }
 (function () {
     this.getFoldWidget = function (session, foldStyle, row) {
@@ -1155,13 +1155,6 @@ oop.inherits(Mode, TextMode);
         else if (state == "doc-start") {
             if (endState == "start" || endState == "no_regex") {
                 return "";
-            }
-            var match = line.match(/^\s*(\/?)\*/);
-            if (match) {
-                if (match[1]) {
-                    indent += " ";
-                }
-                indent += "* ";
             }
         }
         return indent;
@@ -2520,7 +2513,7 @@ oop.inherits(RazorLangHighlightRules, CSharpHighlightRules);
 var RazorHighlightRules = function () {
     HtmlHighlightRules.call(this);
     var blockStartRule = {
-        regex: '@[({]|@functions{',
+        regex: '@[({]|@functions{|@code ?{',
         onMatch: function (value, state, stack) {
             stack.unshift(value);
             stack.unshift('razor-block-start');
@@ -2531,7 +2524,9 @@ var RazorHighlightRules = function () {
     var blockEndMap = {
         '@{': '}',
         '@(': ')',
-        '@functions{': '}'
+        '@functions{': '}',
+        '@code {': '}',
+        '@code{': '}'
     };
     var blockEndRule = {
         regex: '[})]',
@@ -2578,7 +2573,11 @@ var RazorHighlightRules = function () {
         },
         {
             token: ["meta.directive.razor", "text", "identifier"],
-            regex: "^(\\s*@model)(\\s+)(.+)$"
+            regex: "^(\\s*@(?:model|inject|inherits|implements|attribute|layout|namespace|rendermode|using))(\\s+)(.+)$"
+        },
+        {
+            token: ["meta.directive.razor", "text", "string"],
+            regex: "^(\\s*@page)(\\s+)(.*)$"
         },
         blockStartRule,
         shortStartRule

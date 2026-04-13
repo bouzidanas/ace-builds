@@ -7,6 +7,7 @@ ace.define("ace/theme/streamlit_light", ["require", "exports", "module", "ace/th
     exports.isDark = false;
     exports.cssClass = "ace-streamlit-light";
     exports.cssText = require("./streamlit_light.css");
+    exports.$id = "ace/theme/streamlit_light";
     var dom = require("../lib/dom");
     dom.importCssString(exports.cssText, exports.cssClass, false);
     
